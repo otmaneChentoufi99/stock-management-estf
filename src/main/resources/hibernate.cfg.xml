@@ -1,0 +1,31 @@
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <!-- Database connection settings -->
+        <property name="connection.driver_class">org.sqlite.JDBC</property>
+        <property name="connection.url">jdbc:sqlite:magasiner.db</property>
+        <!-- Dialect -->
+        <property name="dialect">org.hibernate.community.dialect.SQLiteDialect</property>
+
+        <!-- Echo all executed SQL to stdout -->
+        <property name="show_sql">true</property>
+        <property name="format_sql">true</property>
+
+        <!-- Update database schema on startup -->
+        <property name="hbm2ddl.auto">update</property>
+
+        <!-- Connection Pool Size -->
+        <property name="connection.pool_size">5</property>
+
+        <!-- We will map our annotated classes later here -->
+        <mapping class="ma.estf.magasiner.models.entity.Article"/>
+        <mapping class="ma.estf.magasiner.models.entity.Department"/>
+        <mapping class="ma.estf.magasiner.models.entity.Affectation"/>
+        <mapping class="ma.estf.magasiner.models.entity.AffectationItem"/>
+        <mapping class="ma.estf.magasiner.models.entity.BonCommande"/>
+        <mapping class="ma.estf.magasiner.models.entity.LigneBonCommande"/>
+    </session-factory>
+</hibernate-configuration>

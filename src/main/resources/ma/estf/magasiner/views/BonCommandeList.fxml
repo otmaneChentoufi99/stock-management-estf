@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="ma.estf.magasiner.controllers.BonCommandeListController"
+      style="-fx-padding: 30px; -fx-background-color: white;">
+      
+    <Label text="Historique des Bons de Commande" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    
+    <TableView fx:id="bcTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colNumero" text="N° BC" prefWidth="150"/>
+            <TableColumn fx:id="colDate" text="Date" prefWidth="150"/>
+            <TableColumn fx:id="colService" text="Service Demandeur" prefWidth="250"/>
+            <TableColumn fx:id="colStatut" text="Statut" prefWidth="100"/>
+            <TableColumn fx:id="colAction" text="Actions" prefWidth="150"/>
+        </columns>
+    </TableView>
+</VBox>

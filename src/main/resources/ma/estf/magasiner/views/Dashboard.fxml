@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="ma.estf.magasiner.controllers.DashboardController"
+      style="-fx-padding: 30px; -fx-background-color: white; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+      
+    <Label text="Dashboard" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+    <Label text="Welcome to the stock management system." style="-fx-font-size: 16px; -fx-text-fill: #7f8c8d;"/>
+    
+    <HBox spacing="20">
+        <VBox style="-fx-background-color: #3498db; -fx-padding: 20px; -fx-border-radius: 8px; -fx-background-radius: 8px;" prefWidth="250">
+            <Label text="Total Available Articles" style="-fx-text-fill: white; -fx-font-size: 16px;"/>
+            <Label fx:id="totalArticlesLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;"/>
+        </VBox>
+        <VBox style="-fx-background-color: #2ecc71; -fx-padding: 20px; -fx-border-radius: 8px; -fx-background-radius: 8px;" prefWidth="250">
+            <Label text="Total Bons de Commande" style="-fx-text-fill: white; -fx-font-size: 16px;"/>
+            <Label fx:id="totalBCLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;"/>
+        </VBox>
+    </HBox>
+</VBox>

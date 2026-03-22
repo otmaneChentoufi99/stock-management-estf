@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="ma.estf.magasiner.controllers.HRController"
+      style="-fx-padding: 30px; -fx-background-color: white; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+      
+    <Label text="Departments Management" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    
+    <VBox spacing="10" prefWidth="400">
+        <HBox spacing="15">
+            <TextField fx:id="deptNameField" promptText="Department Name" prefWidth="250"/>
+            <Button text="Save Department" onAction="#handleAddDepartment" style="-fx-base: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold;"/>
+        </HBox>
+        <ListView fx:id="deptListView" prefHeight="400"/>
+    </VBox>
+</VBox>

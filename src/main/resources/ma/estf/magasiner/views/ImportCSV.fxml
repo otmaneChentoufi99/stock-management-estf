@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="ma.estf.magasiner.controllers.ImportCSVController" 
+      style="-fx-padding: 30px; -fx-background-color: white; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+      
+    <Label text="Import Bon de Commande (Excel)" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    
+    <GridPane hgap="15" vgap="15">
+        <Label text="N° Bon Commande:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <TextField fx:id="numeroBCField" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="300" />
+        
+        <Label text="Service Demandeur:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextField fx:id="serviceDemandeurField" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="300"/>
+    </GridPane>
+
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <Button text="Select Excel File" onAction="#handleSelectFile" style="-fx-base: #3498db; -fx-text-fill: white; -fx-padding: 8px 15px;"/>
+        <Label fx:id="selectedFileLabel" text="No file selected..." style="-fx-text-fill: gray;"/>
+    </HBox>
+    
+    <Button text="Import and Save" onAction="#handleImport" style="-fx-base: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px;"/>
+    
+    <Label fx:id="statusLabel" text="" style="-fx-text-fill: green; -fx-font-weight: bold;"/>
+</VBox>

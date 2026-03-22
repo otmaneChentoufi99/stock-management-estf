@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="15" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="ma.estf.magasiner.controllers.BonCommandeDetailsController"
+      style="-fx-padding: 20px; -fx-background-color: white;" prefWidth="600" prefHeight="400">
+      
+    <Label fx:id="titleLabel" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    
+    <TableView fx:id="lignesTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colRef" text="Référence" prefWidth="120"/>
+            <TableColumn fx:id="colName" text="Article" prefWidth="250"/>
+            <TableColumn fx:id="colQty" text="Quantité Commandée" prefWidth="150"/>
+        </columns>
+    </TableView>
+</VBox>
