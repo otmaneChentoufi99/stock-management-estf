@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="ma.estf.magasiner.controllers.AffectationListController"
+      style="-fx-padding: 30px; -fx-background-color: white;">
+      
+    <Label text="Historique des Affectations" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    
+    <TableView fx:id="affectationTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
+            <TableColumn fx:id="colDate" text="Date" prefWidth="180"/>
+            <TableColumn fx:id="colEmployee" text="Bénéficiaire" prefWidth="200"/>
+            <TableColumn fx:id="colDepartment" text="Département" prefWidth="200"/>
+            <TableColumn fx:id="colAction" text="Actions" prefWidth="150"/>
+        </columns>
+    </TableView>
+</VBox>

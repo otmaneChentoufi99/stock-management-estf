@@ -10,11 +10,14 @@ import ma.estf.magasiner.models.entity.Affectation;
 import ma.estf.magasiner.models.entity.AffectationItem;
 import ma.estf.magasiner.models.entity.Article;
 import ma.estf.magasiner.models.entity.Department;
+import ma.estf.magasiner.models.mapper.AffectationMapper;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AffectationService {
     private final AffectationDao affectationDao = new AffectationDao();
@@ -69,6 +72,13 @@ public class AffectationService {
             if (tx != null) tx.rollback();
             throw e;
         }
+    }
+
+    public List<AffectationDto> getAllAffectations() {
+        List<Affectation> entities = affectationDao.findAll();
+        return entities.stream()
+                .map(AffectationMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     private java.io.File generateInvoice(Affectation affectation) throws Exception {

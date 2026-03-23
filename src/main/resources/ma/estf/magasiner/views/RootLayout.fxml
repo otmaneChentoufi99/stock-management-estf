@@ -12,8 +12,9 @@
             <Separator />
             <Button text="Dashboard" onAction="#showDashboard" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
             <Button text="Import CSV" onAction="#showImportCSV" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
-            <Button text="Historique BC" onAction="#showBonCommandeList" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
-            <Button text="Affectations" onAction="#showCart" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
+            <Button text="Bon Commande" onAction="#showBonCommandeList" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
+            <Button text="Articles" onAction="#showCart" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
+            <Button text="Affectations" onAction="#showAffectationList" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
             <Button text="HR Details" onAction="#showHR" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
         </VBox>
     </left>

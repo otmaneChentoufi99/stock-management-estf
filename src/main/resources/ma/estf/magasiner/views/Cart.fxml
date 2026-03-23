@@ -6,11 +6,11 @@
       fx:controller="ma.estf.magasiner.controllers.CartController"
       style="-fx-padding: 30px; -fx-background-color: white;">
       
-    <Label text="Affectations (Cart)" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    <Label text="Articles (Cart)" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
     
     <HBox spacing="30">
         <!-- Stock Available -->
-        <VBox spacing="10" prefWidth="550">
+        <VBox spacing="10" prefWidth="650">
             <Label text="Available Articles" style="-fx-font-weight: bold;"/>
             
             <HBox spacing="10">
@@ -31,7 +31,7 @@
         </VBox>
 
         <!-- The Cart -->
-        <VBox spacing="10" prefWidth="520">
+        <VBox spacing="10" prefWidth="420">
             <Label text="Current Cart" style="-fx-font-weight: bold;"/>
             <TableView fx:id="cartTable" prefHeight="250">
                 <columns>
