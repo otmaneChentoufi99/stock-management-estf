@@ -20,7 +20,7 @@ public class BonCommandeService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    public void importExcelAsBonCommande(String filePath, String numeroBC, String serviceDemandeur) throws Exception {
+    public void importExcelAsBonCommande(String filePath, String numeroBC, String serviceDemandeur, String type) throws Exception {
         BonCommande bc = BonCommande.builder()
                 .numero(numeroBC)
                 .dateBC(LocalDate.now().toString())
@@ -94,6 +94,7 @@ public class BonCommandeService {
                                 .name(designation)
                                 .quantityInStock(quantity)
                                 .totalReceived(quantity)
+                                .type(type)
                                 .build();
 
                         articleDao.save(article);

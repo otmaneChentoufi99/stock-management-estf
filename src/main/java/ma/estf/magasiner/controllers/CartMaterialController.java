@@ -16,8 +16,9 @@ import ma.estf.magasiner.services.DepartmentService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class CartController {
+public class CartMaterialController {
 
     @FXML private TableView<ArticleDto> stockTable;
     @FXML private TableColumn<ArticleDto, String> colStockName;
@@ -64,7 +65,7 @@ public class CartController {
         colCartInv.setCellFactory(param -> new TableCell<>() {
             private final TextField invField = new TextField();
             {
-                invField.setPromptText("Facultatif");
+                invField.setPromptText("Obligatoire");
                 invField.textProperty().addListener((obs, oldV, newV) -> {
                     if (getIndex() >= 0 && getIndex() < getTableView().getItems().size()) {
                         AffectationItemDto item = getTableView().getItems().get(getIndex());
@@ -91,29 +92,14 @@ public class CartController {
         });
 
         colCartActions.setCellFactory(param -> new TableCell<>() {
-            private final Button btnAdd = new Button("+");
-            private final Button btnSub = new Button("-");
-            private final HBox pane = new HBox(5, btnSub, btnAdd);
+            private final Button btnSub = new Button("Supprimer");
+            private final HBox pane = new HBox(5, btnSub);
             {
-                btnAdd.setStyle("-fx-base: #2ecc71; -fx-text-fill: white;");
                 btnSub.setStyle("-fx-base: #e74c3c; -fx-text-fill: white;");
-                
-                btnAdd.setOnAction(event -> {
-                    AffectationItemDto item = getTableView().getItems().get(getIndex());
-                    if (item.getQuantity() < item.getArticle().getQuantityInStock()) {
-                        item.setQuantity(item.getQuantity() + 1);
-                        getTableView().refresh();
-                    }
-                });
                 
                 btnSub.setOnAction(event -> {
                     AffectationItemDto item = getTableView().getItems().get(getIndex());
-                    if (item.getQuantity() > 1) {
-                        item.setQuantity(item.getQuantity() - 1);
-                        getTableView().refresh();
-                    } else {
-                        cartItems.remove(item);
-                    }
+                    cartItems.remove(item);
                 });
             }
 
@@ -138,7 +124,12 @@ public class CartController {
     }
 
     private void refreshData() {
-        masterStockList.setAll(articleService.getAllArticles());
+        List<ArticleDto> allArticles = articleService.getAllArticles();
+        // Keep ONLY MATERIEL types
+        masterStockList.setAll(allArticles.stream()
+            .filter(a -> "MATERIEL".equals(a.getType()))
+            .collect(Collectors.toList()));
+
         filterStock(searchFilterField.getText());
         
         departments = deptService.getAllDepartments();
@@ -172,32 +163,22 @@ public class CartController {
             return;
         }
         
-        for (AffectationItemDto item : cartItems) {
-            if (item.getArticle().getId().equals(selected.getId())) {
-                if (item.getQuantity() < selected.getQuantityInStock()) {
-                    item.setQuantity(item.getQuantity() + 1);
-                    cartTable.refresh();
-                    statusLabel.setStyle("-fx-text-fill: green;");
-                    statusLabel.setText("Incremented cart quantity.");
-                } else {
-                    statusLabel.setStyle("-fx-text-fill: red;");
-                    statusLabel.setText("Cannot exceed available stock.");
-                }
-                return;
-            }
-        }
-        
-        if (selected.getQuantityInStock() > 0) {
+        long countInCart = cartItems.stream()
+            .filter(item -> item.getArticle().getId().equals(selected.getId()))
+            .mapToLong(AffectationItemDto::getQuantity)
+            .sum();
+            
+        if (countInCart < selected.getQuantityInStock()) {
             AffectationItemDto item = AffectationItemDto.builder()
                 .article(selected)
                 .quantity(1)
                 .build();
             cartItems.add(item);
             statusLabel.setStyle("-fx-text-fill: green;");
-            statusLabel.setText("Added to cart.");
+            statusLabel.setText("Added new line to cart.");
         } else {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Out of stock.");
+            statusLabel.setText("Cannot exceed available stock.");
         }
     }
 
@@ -222,6 +203,15 @@ public class CartController {
             return;
         }
 
+        // VALIDATION: Inventory Number is REQUIRED for material.
+        for (AffectationItemDto item : cartItems) {
+            if (item.getInventoryNumber() == null || item.getInventoryNumber().trim().isEmpty()) {
+                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setText("Inventory number is required for all material articles.");
+                return;
+            }
+        }
+
         DepartmentDto selectedDept = departments.get(sIdx);
         
         AffectationDto affectation = AffectationDto.builder()
@@ -231,9 +221,9 @@ public class CartController {
             .build();
             
         try {
-            java.io.File invoicePdf = affectationService.checkoutCart(affectation);
+            java.io.File invoicePdf = affectationService.checkoutCart(affectation, true); // true for material
             statusLabel.setStyle("-fx-text-fill: green;");
-            statusLabel.setText("Checkout successful! Opening Invoice...");
+            statusLabel.setText("Checkout successful! Opening material invoice...");
             cartItems.clear();
             employeeNameField.clear();
             refreshData();

@@ -12,6 +12,7 @@ public class ImportCSVController {
 
     @FXML private TextField numeroBCField;
     @FXML private TextField serviceDemandeurField;
+    @FXML private javafx.scene.control.ComboBox<String> typeComboBox;
     @FXML private Label selectedFileLabel;
     @FXML private Label statusLabel;
 
@@ -40,6 +41,7 @@ public class ImportCSVController {
         }
         String numero = numeroBCField.getText();
         String serviceDemandeur = serviceDemandeurField.getText();
+        String type = typeComboBox.getValue();
         
         if (numero == null || numero.trim().isEmpty()) {
             statusLabel.setStyle("-fx-text-fill: red;");
@@ -47,12 +49,19 @@ public class ImportCSVController {
             return;
         }
 
+        if (type == null || type.trim().isEmpty()) {
+            statusLabel.setStyle("-fx-text-fill: red;");
+            statusLabel.setText("Type de Bon Commande is required.");
+            return;
+        }
+
         try {
-            service.importExcelAsBonCommande(selectedFile.getAbsolutePath(), numero, serviceDemandeur);
+            service.importExcelAsBonCommande(selectedFile.getAbsolutePath(), numero, serviceDemandeur, type);
             statusLabel.setStyle("-fx-text-fill: green;");
             statusLabel.setText("Import successful! Data added to database.");
             numeroBCField.clear();
             serviceDemandeurField.clear();
+            typeComboBox.getSelectionModel().clearSelection();
             selectedFile = null;
             selectedFileLabel.setText("No file selected...");
         } catch (Exception e) {

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="ma.estf.magasiner.controllers.CartMaterialController"
+      style="-fx-padding: 30px; -fx-background-color: white;">
+      
+    <Label text="Articles Matériels (Cart)" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    
+    <HBox spacing="30">
+        <!-- Stock Available -->
+        <VBox spacing="10" prefWidth="650">
+            <Label text="Available Material Articles" style="-fx-font-weight: bold;"/>
+            
+            <HBox spacing="10">
+                <TextField fx:id="searchFilterField" promptText="Search by Name, Service, N° BC or Year..." prefWidth="400"/>
+                <Button text="Add to Cart &gt;&gt;" onAction="#handleAddToCart" style="-fx-base: #3498db; -fx-text-fill: white;"/>
+            </HBox>
+            
+            <TableView fx:id="stockTable" prefHeight="350">
+                <columns>
+                    <TableColumn fx:id="colStockName" text="Name" prefWidth="150"/>
+                    <TableColumn fx:id="colStockService" text="Service" prefWidth="120"/>
+                    <TableColumn fx:id="colStockBC" text="N° BC" prefWidth="90"/>
+                    <TableColumn fx:id="colStockDate" text="Date" prefWidth="80"/>
+                    <TableColumn fx:id="colStockTotal" text="Rec." prefWidth="50"/>
+                    <TableColumn fx:id="colStockQty" text="Avail." prefWidth="50"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- The Cart -->
+        <VBox spacing="10" prefWidth="420">
+            <Label text="Current Cart" style="-fx-font-weight: bold;"/>
+            <TableView fx:id="cartTable" prefHeight="250">
+                <columns>
+                    <TableColumn fx:id="colCartName" text="Name" prefWidth="250"/>
+                    <TableColumn fx:id="colCartQty" text="Qty" prefWidth="50"/>
+                    <TableColumn fx:id="colCartInv" text="N° Inv." prefWidth="100"/>
+                    <TableColumn fx:id="colCartActions" text="Actions" prefWidth="120"/>
+                </columns>
+            </TableView>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Assign to Dept:"/>
+                <ComboBox fx:id="assigneeDeptComboBox" promptText="Select Department" prefWidth="200"/>
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Employee Name:"/>
+                <TextField fx:id="employeeNameField" promptText="John Doe" prefWidth="200"/>
+            </HBox>
+            <Button text="Checkout &amp; Print PDF" onAction="#handleCheckout" style="-fx-base: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px;"/>
+            <Label fx:id="statusLabel" text=""/>
+        </VBox>
+    </HBox>
+</VBox>

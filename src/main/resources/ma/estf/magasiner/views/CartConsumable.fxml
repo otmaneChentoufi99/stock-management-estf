@@ -3,15 +3,15 @@
 <?import javafx.scene.layout.*?>
 
 <VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
-      fx:controller="ma.estf.magasiner.controllers.CartController"
+      fx:controller="ma.estf.magasiner.controllers.CartConsumableController"
       style="-fx-padding: 30px; -fx-background-color: white;">
       
-    <Label text="Articles (Cart)" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    <Label text="Articles Consommables (Cart)" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
     
     <HBox spacing="30">
         <!-- Stock Available -->
         <VBox spacing="10" prefWidth="650">
-            <Label text="Available Articles" style="-fx-font-weight: bold;"/>
+            <Label text="Available Consumable Articles" style="-fx-font-weight: bold;"/>
             
             <HBox spacing="10">
                 <TextField fx:id="searchFilterField" promptText="Search by Name, Service, N° BC or Year..." prefWidth="400"/>
@@ -37,7 +37,6 @@
                 <columns>
                     <TableColumn fx:id="colCartName" text="Name" prefWidth="250"/>
                     <TableColumn fx:id="colCartQty" text="Qty" prefWidth="50"/>
-                    <TableColumn fx:id="colCartInv" text="N° Inv." prefWidth="100"/>
                     <TableColumn fx:id="colCartActions" text="Actions" prefWidth="120"/>
                 </columns>
             </TableView>

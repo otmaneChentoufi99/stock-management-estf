@@ -24,7 +24,7 @@ public class AffectationService {
     private final ArticleDao articleDao = new ArticleDao();
     private final DepartmentDao departmentDao = new DepartmentDao();
 
-    public java.io.File checkoutCart(AffectationDto affectationDto) throws Exception {
+    public java.io.File checkoutCart(AffectationDto affectationDto, boolean isMaterial) throws Exception {
         if (affectationDto.getItems() == null || affectationDto.getItems().isEmpty()) {
             throw new Exception("Cart is empty.");
         }
@@ -67,7 +67,7 @@ public class AffectationService {
             affectationDao.save(affectation);
             tx.commit();
             
-            return generateInvoice(affectation);
+            return generateInvoice(affectation, isMaterial);
         } catch (Exception e) {
             if (tx != null) tx.rollback();
             throw e;
@@ -81,7 +81,7 @@ public class AffectationService {
                 .collect(Collectors.toList());
     }
 
-    private java.io.File generateInvoice(Affectation affectation) throws Exception {
+    private java.io.File generateInvoice(Affectation affectation, boolean isMaterial) throws Exception {
         String filename = "bon_affectation_" + affectation.getId() + ".pdf";
         java.io.File pdfFile = new java.io.File(filename);
         com.lowagie.text.Document document = new com.lowagie.text.Document(com.lowagie.text.PageSize.A4);
@@ -89,6 +89,9 @@ public class AffectationService {
         document.open();
         
         com.lowagie.text.Font titleFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 18, com.lowagie.text.Font.BOLD);
+        if (isMaterial) {
+            titleFont.setColor(new java.awt.Color(0, 102, 204));
+        }
         com.lowagie.text.Font boldFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.BOLD);
         com.lowagie.text.Font normalFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.NORMAL);
 
@@ -97,7 +100,8 @@ public class AffectationService {
         document.add(new com.lowagie.text.Paragraph("SERVICE ECONOMIQUE", normalFont));
         document.add(new com.lowagie.text.Paragraph("\n"));
 
-        com.lowagie.text.Paragraph title = new com.lowagie.text.Paragraph("BON DE SORTIE MAGASIN N° " + affectation.getId(), titleFont);
+        String titleText = "BON DE SORTIE MAGASIN N° " + affectation.getId() + (isMaterial ? " (Matériel)" : " (Consommable)");
+        com.lowagie.text.Paragraph title = new com.lowagie.text.Paragraph(titleText, titleFont);
         title.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
         document.add(title);
         document.add(new com.lowagie.text.Paragraph("\n"));
@@ -113,16 +117,23 @@ public class AffectationService {
         document.add(infoTable);
         document.add(new com.lowagie.text.Paragraph("\n"));
 
-        com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(4);
+        int numCols = isMaterial ? 4 : 3;
+        com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(numCols);
         table.setWidthPercentage(100);
-        table.setWidths(new float[]{2f, 4f, 2f, 3f});
+        if (isMaterial) {
+            table.setWidths(new float[]{2f, 4f, 2f, 3f});
+        } else {
+            table.setWidths(new float[]{2f, 5f, 2f});
+        }
         
-        String[] headers = {"Reference", "Designation", "Qte Livree", "N° Inventaire"};
+        String[] headers = isMaterial ? new String[]{"Reference", "Designation", "Qte Livree", "N° Inventaire"} : new String[]{"Reference", "Designation", "Qte Livree"};
+        
+        java.awt.Color headerColor = isMaterial ? new java.awt.Color(173, 216, 230) : new java.awt.Color(230, 230, 230); // Light blue for material, gray for consumable
         for (String h : headers) {
             com.lowagie.text.pdf.PdfPCell cell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(h, boldFont));
             cell.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
             cell.setPadding(5);
-            cell.setBackgroundColor(new java.awt.Color(230, 230, 230));
+            cell.setBackgroundColor(headerColor);
             table.addCell(cell);
         }
 
@@ -140,11 +151,13 @@ public class AffectationService {
             qtyCell.setPadding(5);
             table.addCell(qtyCell);
             
-            String invText = item.getInventoryNumber() != null && !item.getInventoryNumber().trim().isEmpty() ? item.getInventoryNumber() : "-";
-            com.lowagie.text.pdf.PdfPCell invCell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(invText, normalFont));
-            invCell.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
-            invCell.setPadding(5);
-            table.addCell(invCell);
+            if (isMaterial) {
+                String invText = item.getInventoryNumber() != null && !item.getInventoryNumber().trim().isEmpty() ? item.getInventoryNumber() : "-";
+                com.lowagie.text.pdf.PdfPCell invCell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(invText, normalFont));
+                invCell.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+                invCell.setPadding(5);
+                table.addCell(invCell);
+            }
         }
         document.add(table);
         document.add(new com.lowagie.text.Paragraph("\n\n\n"));

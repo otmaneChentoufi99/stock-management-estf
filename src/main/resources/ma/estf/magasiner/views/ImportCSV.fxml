@@ -2,6 +2,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
+<?import java.lang.*?>
+<?import javafx.collections.*?>
 
 <VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
       fx:controller="ma.estf.magasiner.controllers.ImportCSVController" 
@@ -9,12 +11,27 @@
       
     <Label text="Import Bon de Commande (Excel)" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
     
+    <!-- Define the options for the ComboBox -->
+    <fx:define>
+        <javafx.collections.FXCollections fx:factory="observableArrayList" fx:id="typeOptions">
+            <java.lang.String fx:value="MATERIEL"/>
+            <java.lang.String fx:value="CONSOMMABLE"/>
+        </javafx.collections.FXCollections>
+    </fx:define>
+
     <GridPane hgap="15" vgap="15">
         <Label text="N° Bon Commande:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
         <TextField fx:id="numeroBCField" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="300" />
         
         <Label text="Service Demandeur:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
         <TextField fx:id="serviceDemandeurField" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="300"/>
+
+        <Label text="Type de Bon Commande:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <ComboBox fx:id="typeComboBox" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="300">
+            <items>
+                <fx:reference source="typeOptions"/>
+            </items>
+        </ComboBox>
     </GridPane>
 
     <HBox spacing="15" alignment="CENTER_LEFT">

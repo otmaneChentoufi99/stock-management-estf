@@ -61,9 +61,10 @@ public class BonCommandeListController {
     }
 
     private void openDetailsDialog(BonCommandeDto bc) {
-        CartController.pendingSearchQuery = bc.getNumero();
+        CartMaterialController.pendingSearchQuery = bc.getNumero();
+        CartConsumableController.pendingSearchQuery = bc.getNumero();
         if (RootController.instance != null) {
-            RootController.instance.showCart();
+            RootController.instance.showCartMaterial();
         }
     }
 }

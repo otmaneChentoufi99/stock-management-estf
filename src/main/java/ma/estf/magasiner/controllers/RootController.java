@@ -28,7 +28,8 @@ public class RootController {
     @FXML public void showDashboard() { loadView("Dashboard.fxml"); }
     @FXML public void showImportCSV() { loadView("ImportCSV.fxml"); }
     @FXML public void showBonCommandeList() { loadView("BonCommandeList.fxml"); }
-    @FXML public void showCart() { loadView("Cart.fxml"); }
+    @FXML public void showCartMaterial() { loadView("CartMaterial.fxml"); }
+    @FXML public void showCartConsumable() { loadView("CartConsumable.fxml"); }
     @FXML public void showAffectationList() { loadView("AffectationList.fxml"); }
     @FXML public void showHR() { loadView("HR.fxml"); }
 }

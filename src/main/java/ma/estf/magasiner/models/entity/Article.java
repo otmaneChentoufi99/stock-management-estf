@@ -27,6 +27,9 @@ public class Article {
     @Column(nullable = true)
     private Integer totalReceived;
 
+    @Column(name = "type", nullable = true)
+    private String type; // MATERIEL or CONSOMMABLE
+
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<LigneBonCommande> lignesBonCommande;
 }
