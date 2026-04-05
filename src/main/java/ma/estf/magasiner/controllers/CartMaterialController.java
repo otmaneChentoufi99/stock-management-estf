@@ -169,13 +169,25 @@ public class CartMaterialController {
             .sum();
             
         if (countInCart < selected.getQuantityInStock()) {
-            AffectationItemDto item = AffectationItemDto.builder()
-                .article(selected)
-                .quantity(1)
-                .build();
-            cartItems.add(item);
-            statusLabel.setStyle("-fx-text-fill: green;");
-            statusLabel.setText("Added new line to cart.");
+            AffectationItemDto existingItem = cartItems.stream()
+                .filter(item -> item.getArticle().getId().equals(selected.getId()))
+                .findFirst()
+                .orElse(null);
+
+            if (existingItem != null) {
+                existingItem.setQuantity(existingItem.getQuantity() + 1);
+                cartTable.refresh();
+                statusLabel.setStyle("-fx-text-fill: green;");
+                statusLabel.setText("Incremented quantity in cart.");
+            } else {
+                AffectationItemDto item = AffectationItemDto.builder()
+                    .article(selected)
+                    .quantity(1)
+                    .build();
+                cartItems.add(item);
+                statusLabel.setStyle("-fx-text-fill: green;");
+                statusLabel.setText("Added new line to cart.");
+            }
         } else {
             statusLabel.setStyle("-fx-text-fill: red;");
             statusLabel.setText("Cannot exceed available stock.");
