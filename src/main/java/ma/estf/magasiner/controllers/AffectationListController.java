@@ -15,11 +15,16 @@ public class AffectationListController {
     @FXML private TableView<AffectationDto> affectationTable;
     @FXML private TableColumn<AffectationDto, Long> colId;
     @FXML private TableColumn<AffectationDto, String> colDate;
+    @FXML private TableColumn<AffectationDto, String> colCategory;
     @FXML private TableColumn<AffectationDto, String> colEmployee;
     @FXML private TableColumn<AffectationDto, String> colDepartment;
     @FXML private TableColumn<AffectationDto, Void> colAction;
 
+    @FXML private ComboBox<String> categoryFilter;
+
     private final AffectationService affectationService = new AffectationService();
+    private final javafx.collections.ObservableList<AffectationDto> masterList = FXCollections.observableArrayList();
+    private final javafx.collections.transformation.FilteredList<AffectationDto> filteredList = new javafx.collections.transformation.FilteredList<>(masterList, p -> true);
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @FXML
@@ -27,10 +32,20 @@ public class AffectationListController {
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colDate.setCellValueFactory(cellData -> 
             new SimpleStringProperty(cellData.getValue().getDate().format(formatter)));
+        colCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
         colEmployee.setCellValueFactory(new PropertyValueFactory<>("employeeName"));
         colDepartment.setCellValueFactory(cellData -> 
             new SimpleStringProperty(cellData.getValue().getDepartment() != null ? 
                                        cellData.getValue().getDepartment().getName() : "-"));
+
+        categoryFilter.setItems(FXCollections.observableArrayList("Tous", "MATERIEL", "CONSOMMABLE"));
+        categoryFilter.setValue("Tous");
+        categoryFilter.valueProperty().addListener((obs, oldV, newV) -> {
+            filteredList.setPredicate(affectation -> {
+                if (newV == null || newV.equals("Tous")) return true;
+                return newV.equals(affectation.getCategory());
+            });
+        });
 
         colAction.setCellFactory(param -> new TableCell<>() {
             private final Button viewBtn = new Button("Voir Détails");
@@ -54,10 +69,11 @@ public class AffectationListController {
             }
         });
 
+        affectationTable.setItems(filteredList);
         refreshData();
     }
 
     private void refreshData() {
-        affectationTable.setItems(FXCollections.observableArrayList(affectationService.getAllAffectations()));
+        masterList.setAll(affectationService.getAllAffectations());
     }
 }

@@ -63,8 +63,21 @@ public class BonCommandeListController {
     private void openDetailsDialog(BonCommandeDto bc) {
         CartMaterialController.pendingSearchQuery = bc.getNumero();
         CartConsumableController.pendingSearchQuery = bc.getNumero();
+
+        // Check the type of the first article to decide which cart to show
+        String type = "MATERIEL"; // default
+        if (bc.getLignes() != null && !bc.getLignes().isEmpty()) {
+            if (bc.getLignes().get(0).getArticle() != null) {
+                type = bc.getLignes().get(0).getArticle().getType();
+            }
+        }
+
         if (RootController.instance != null) {
-            RootController.instance.showCartMaterial();
+            if ("CONSOMMABLE".equals(type)) {
+                RootController.instance.showCartConsumable();
+            } else {
+                RootController.instance.showCartMaterial();
+            }
         }
     }
 }

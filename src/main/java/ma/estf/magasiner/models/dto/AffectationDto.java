@@ -13,5 +13,6 @@ public class AffectationDto {
     private LocalDateTime date;
     private String employeeName;
     private DepartmentDto department;
+    private String category;
     private List<AffectationItemDto> items;
 }

@@ -42,6 +42,7 @@ public class AffectationService {
                     .date(LocalDateTime.now())
                     .employeeName(affectationDto.getEmployeeName())
                     .department(dept)
+                    .category(isMaterial ? "MATERIEL" : "CONSOMMABLE")
                     .items(new ArrayList<>())
                     .build();
 

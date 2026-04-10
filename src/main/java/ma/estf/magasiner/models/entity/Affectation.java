@@ -26,6 +26,9 @@ public class Affectation {
     @JoinColumn(name = "department_id")
     private Department department;
 
+    @Column(nullable = true)
+    private String category;
+
     @OneToMany(mappedBy = "affectation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<AffectationItem> items;
 }
