@@ -29,6 +29,12 @@ public class Affectation {
     @Column(nullable = true)
     private String category;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private String status = "ACTIVE"; // ACTIVE, CLOSED
+
+    private java.time.LocalDateTime dateEnd;
+
     @OneToMany(mappedBy = "affectation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<AffectationItem> items;
 }

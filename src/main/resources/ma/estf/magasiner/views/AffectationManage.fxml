@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="15" prefWidth="800" prefHeight="600" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="ma.estf.magasiner.controllers.AffectationManageController"
+      style="-fx-background-color: #f8f9fa;">
+    
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <!-- Header Section -->
+    <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label fx:id="titleLabel" text="Gestion de l'Affectation" style="-fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #2c3e50;"/>
+            <HBox spacing="20">
+                <Label fx:id="beneficiaryLabel" text="Bénéficiaire: " style="-fx-text-fill: #7f8c8d;"/>
+                <Label fx:id="dateLabel" text="Date: " style="-fx-text-fill: #7f8c8d;"/>
+            </HBox>
+        </VBox>
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button text="Transférer Tout" onAction="#handleTransferAll" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            <Button text="Retourner Tout" onAction="#handleReturnAll" style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;"/>
+        </HBox>
+    </HBox>
+
+    <!-- Items Table -->
+    <TableView fx:id="itemsTable" VBox.vgrow="ALWAYS" style="-fx-background-radius: 5;">
+        <columns>
+            <TableColumn fx:id="colRef" text="Référence" prefWidth="120"/>
+            <TableColumn fx:id="colName" text="Désignation" prefWidth="250"/>
+            <TableColumn fx:id="colQuantity" text="Qté Actuelle" prefWidth="100"/>
+            <TableColumn fx:id="colInventory" text="N° Inventaire" prefWidth="150"/>
+            <TableColumn fx:id="colCondition" text="État" prefWidth="100"/>
+        </columns>
+    </TableView>
+
+    <!-- Detail Action Panel (Visible when an item is selected) -->
+    <VBox fx:id="actionPanel" spacing="10" managed="false" visible="false" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+        <Label fx:id="selectedItemLabel" text="Action sur l'article sélectionné" style="-fx-font-weight: bold; -fx-text-fill: #34495e;"/>
+        <HBox spacing="20" alignment="CENTER_LEFT">
+            <VBox spacing="5">
+                <Label text="Quantité:"/>
+                <TextField fx:id="actionQuantityField" prefWidth="80"/>
+            </VBox>
+            
+            <Separator orientation="VERTICAL"/>
+            
+            <VBox fx:id="transferBox" spacing="5">
+                <Label text="Nouveau Bénéficiaire / Service:"/>
+                <HBox spacing="10">
+                    <TextField fx:id="targetField" promptText="Nom ou Département" prefWidth="200"/>
+                    <Button text="Transférer Article" onAction="#handleTransferSelected" style="-fx-background-color: #3498db; -fx-text-fill: white;"/>
+                </HBox>
+            </VBox>
+            
+            <Separator orientation="VERTICAL"/>
+            
+            <VBox fx:id="returnBox" spacing="5">
+                <Label text="État au retour:"/>
+                <HBox spacing="10">
+                    <ComboBox fx:id="conditionCombo" prefWidth="120"/>
+                    <Button text="Retourner Article" onAction="#handleReturnSelected" style="-fx-background-color: #2ecc71; -fx-text-fill: white;"/>
+                </HBox>
+            </VBox>
+        </HBox>
+    </VBox>
+
+</VBox>

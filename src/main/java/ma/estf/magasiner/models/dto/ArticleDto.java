@@ -11,6 +11,7 @@ public class ArticleDto {
     private String reference;
     private String name;
     private Integer quantityInStock;
+    private Integer quantityDamaged;
     private Integer totalReceived;
     private String type;
     

@@ -14,9 +14,20 @@
             <Label text="Total Available Articles" style="-fx-text-fill: white; -fx-font-size: 16px;"/>
             <Label fx:id="totalArticlesLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;"/>
         </VBox>
-        <VBox style="-fx-background-color: #2ecc71; -fx-padding: 20px; -fx-border-radius: 8px; -fx-background-radius: 8px;" prefWidth="250">
-            <Label text="Total Bons de Commande" style="-fx-text-fill: white; -fx-font-size: 16px;"/>
-            <Label fx:id="totalBCLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;"/>
+        <VBox style="-fx-background-color: #e74c3c; -fx-padding: 20px; -fx-border-radius: 8px; -fx-background-radius: 8px;" prefWidth="250">
+            <Label text="Damaged/Broken Stock" style="-fx-text-fill: white; -fx-font-size: 16px;"/>
+            <Label fx:id="totalDamagedLabel" text="0" style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;"/>
         </VBox>
     </HBox>
+
+    <Label text="Inventory Details" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 10px 0 0 0;"/>
+    <TableView fx:id="inventoryTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colRef" text="Référence" prefWidth="120"/>
+            <TableColumn fx:id="colName" text="Designation" prefWidth="250"/>
+            <TableColumn fx:id="colType" text="Type" prefWidth="100"/>
+            <TableColumn fx:id="colAvailable" text="Disponibles" prefWidth="100"/>
+            <TableColumn fx:id="colDamaged" text="Endommagés" prefWidth="100"/>
+        </columns>
+    </TableView>
 </VBox>

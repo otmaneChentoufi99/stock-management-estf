@@ -11,4 +11,5 @@ public class AffectationItemDto {
     private ArticleDto article;
     private int quantity;
     private String inventoryNumber;
+    private String condition;
 }

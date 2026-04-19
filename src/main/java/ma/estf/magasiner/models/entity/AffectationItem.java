@@ -27,4 +27,8 @@ public class AffectationItem {
 
     @Column(nullable = true)
     private String inventoryNumber;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private String condition = "GOOD"; // GOOD, DAMAGED, BROKEN
 }

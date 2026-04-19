@@ -13,6 +13,8 @@ public class AffectationMapper {
                 .employeeName(entity.getEmployeeName())
                 .department(DepartmentMapper.toDto(entity.getDepartment()))
                 .category(entity.getCategory())
+                .status(entity.getStatus())
+                .dateEnd(entity.getDateEnd())
                 .items(entity.getItems() != null ? 
                        entity.getItems().stream().map(AffectationItemMapper::toDto).collect(Collectors.toList()) : null)
                 .build();
@@ -26,6 +28,8 @@ public class AffectationMapper {
                 .employeeName(dto.getEmployeeName())
                 .department(DepartmentMapper.toEntity(dto.getDepartment()))
                 .category(dto.getCategory())
+                .status(dto.getStatus())
+                .dateEnd(dto.getDateEnd())
                 .items(dto.getItems() != null ? 
                        dto.getItems().stream().map(AffectationItemMapper::toEntity).collect(Collectors.toList()) : null)
                 .build();

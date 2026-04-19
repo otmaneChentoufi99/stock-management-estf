@@ -24,6 +24,10 @@ public class Article {
     @Column(nullable = false)
     private Integer quantityInStock;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer quantityDamaged = 0;
+
     @Column(nullable = true)
     private Integer totalReceived;
 

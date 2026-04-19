@@ -16,6 +16,7 @@
             <Button text="Matériel" onAction="#showCartMaterial" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
             <Button text="Consommables" onAction="#showCartConsumable" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
             <Button text="Affectations" onAction="#showAffectationList" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
+            <Button text="Audit Log" onAction="#showMovements" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
             <Button text="HR Details" onAction="#showHR" maxWidth="Infinity" style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px;"/>
         </VBox>
     </left>

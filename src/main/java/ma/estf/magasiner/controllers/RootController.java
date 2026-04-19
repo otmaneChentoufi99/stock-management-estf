@@ -31,5 +31,18 @@ public class RootController {
     @FXML public void showCartMaterial() { loadView("CartMaterial.fxml"); }
     @FXML public void showCartConsumable() { loadView("CartConsumable.fxml"); }
     @FXML public void showAffectationList() { loadView("AffectationList.fxml"); }
+    @FXML public void showMovements() { loadView("MovementHistory.fxml"); }
     @FXML public void showHR() { loadView("HR.fxml"); }
+
+    public void showAffectationManage(ma.estf.magasiner.models.dto.AffectationDto aff) {
+        try {
+            FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("/ma/estf/magasiner/views/AffectationManage.fxml"));
+            Node node = loader.load();
+            AffectationManageController controller = loader.getController();
+            controller.setAffectation(aff);
+            contentArea.getChildren().setAll(node);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

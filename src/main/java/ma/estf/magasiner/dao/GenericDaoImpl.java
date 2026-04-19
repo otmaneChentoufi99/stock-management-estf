@@ -21,7 +21,7 @@ public abstract class GenericDaoImpl<T, ID extends Serializable> implements Gene
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
-            e.printStackTrace();
+            throw new RuntimeException("Error saving entity: " + e.getMessage(), e);
         }
     }
 
@@ -34,7 +34,7 @@ public abstract class GenericDaoImpl<T, ID extends Serializable> implements Gene
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
-            e.printStackTrace();
+            throw new RuntimeException("Error updating entity: " + e.getMessage(), e);
         }
     }
 
@@ -47,7 +47,7 @@ public abstract class GenericDaoImpl<T, ID extends Serializable> implements Gene
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
-            e.printStackTrace();
+            throw new RuntimeException("Error deleting entity: " + e.getMessage(), e);
         }
     }
 

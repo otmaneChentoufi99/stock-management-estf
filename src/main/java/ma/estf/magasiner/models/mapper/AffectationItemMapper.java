@@ -11,6 +11,7 @@ public class AffectationItemMapper {
                 .article(ArticleMapper.toDto(entity.getArticle()))
                 .quantity(entity.getQuantity())
                 .inventoryNumber(entity.getInventoryNumber())
+                .condition(entity.getCondition())
                 .build();
     }
 
@@ -21,6 +22,7 @@ public class AffectationItemMapper {
                 .article(ArticleMapper.toEntity(dto.getArticle()))
                 .quantity(dto.getQuantity())
                 .inventoryNumber(dto.getInventoryNumber())
+                .condition(dto.getCondition())
                 .build();
     }
 }

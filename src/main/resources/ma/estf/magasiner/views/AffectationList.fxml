@@ -15,10 +15,11 @@
         <columns>
             <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
             <TableColumn fx:id="colDate" text="Date" prefWidth="180"/>
-            <TableColumn fx:id="colCategory" text="Catégorie" prefWidth="120"/>
-            <TableColumn fx:id="colEmployee" text="Bénéficiaire" prefWidth="180"/>
-            <TableColumn fx:id="colDepartment" text="Département" prefWidth="180"/>
-            <TableColumn fx:id="colAction" text="Actions" prefWidth="150"/>
+            <TableColumn fx:id="colCategory" text="Catégorie" prefWidth="100"/>
+            <TableColumn fx:id="colEmployee" text="Bénéficiaire" prefWidth="150"/>
+            <TableColumn fx:id="colDepartment" text="Département" prefWidth="150"/>
+            <TableColumn fx:id="colStatus" text="Statut" prefWidth="100"/>
+            <TableColumn fx:id="colAction" text="Actions" prefWidth="250"/>
         </columns>
     </TableView>
 </VBox>

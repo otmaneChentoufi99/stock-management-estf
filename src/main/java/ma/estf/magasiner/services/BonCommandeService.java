@@ -92,12 +92,23 @@ public class BonCommandeService {
                         Article article = Article.builder()
                                 .reference(ref)
                                 .name(designation)
-                                .quantityInStock(quantity)
+                                .quantityInStock(0) // Start with 0
+                                .quantityDamaged(0)
                                 .totalReceived(quantity)
                                 .type(type)
                                 .build();
 
                         articleDao.save(article);
+                        
+                        // Record IN movement
+                        new MovementService().recordMovement(
+                            ma.estf.magasiner.models.entity.MovementType.IN, 
+                            article.getId(), 
+                            quantity, 
+                            "FOURNISSEUR", 
+                            "STOCK", 
+                            numeroBC
+                        );
 
                         LigneBonCommande ligne = LigneBonCommande.builder()
                                 .bonCommande(bc)

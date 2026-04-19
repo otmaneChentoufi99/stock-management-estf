@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="ma.estf.magasiner.controllers.MovementHistoryController"
+      style="-fx-padding: 30px; -fx-background-color: white;">
+      
+    <Label text="Audit Log - Historique des Mouvements" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <TextField fx:id="searchField" promptText="Rechercher par Article, Réf, From/To..." prefWidth="400"/>
+        <Label text="Type:"/>
+        <ComboBox fx:id="typeFilter" prefWidth="150" promptText="Tous"/>
+    </HBox>
+
+    <TableView fx:id="movementTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colDate" text="Date &amp; Heure" prefWidth="180"/>
+            <TableColumn fx:id="colType" text="Opération" prefWidth="100"/>
+            <TableColumn fx:id="colArticle" text="Article" prefWidth="150"/>
+            <TableColumn fx:id="colQty" text="Qté" prefWidth="60"/>
+            <TableColumn fx:id="colFrom" text="Source" prefWidth="150"/>
+            <TableColumn fx:id="colTo" text="Destination" prefWidth="150"/>
+            <TableColumn fx:id="colRef" text="Référence" prefWidth="150"/>
+        </columns>
+    </TableView>
+</VBox>

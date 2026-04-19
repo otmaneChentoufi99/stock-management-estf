@@ -6,7 +6,7 @@
     <session-factory>
         <!-- Database connection settings -->
         <property name="connection.driver_class">org.sqlite.JDBC</property>
-        <property name="connection.url">jdbc:sqlite:magasiner.db</property>
+        <property name="connection.url">jdbc:sqlite:magasiner.db?journal_mode=WAL</property>
         <!-- Dialect -->
         <property name="dialect">org.hibernate.community.dialect.SQLiteDialect</property>
 
@@ -15,7 +15,7 @@
         <property name="format_sql">true</property>
 
         <!-- Update database schema on startup -->
-        <property name="hbm2ddl.auto">update</property>
+        <property name="hbm2ddl.auto">create-drop</property>
 
         <!-- Connection Pool Size -->
         <property name="connection.pool_size">5</property>
@@ -26,6 +26,7 @@
         <mapping class="ma.estf.magasiner.models.entity.Affectation"/>
         <mapping class="ma.estf.magasiner.models.entity.AffectationItem"/>
         <mapping class="ma.estf.magasiner.models.entity.BonCommande"/>
+        <mapping class="ma.estf.magasiner.models.entity.Movement"/>
         <mapping class="ma.estf.magasiner.models.entity.LigneBonCommande"/>
     </session-factory>
 </hibernate-configuration>

@@ -25,6 +25,7 @@ public class ArticleMapper {
                 .reference(entity.getReference())
                 .name(entity.getName())
                 .quantityInStock(entity.getQuantityInStock())
+                .quantityDamaged(entity.getQuantityDamaged())
                 .totalReceived(entity.getTotalReceived() == null ? 0 : entity.getTotalReceived())
                 .type(entity.getType())
                 .bonCommandeNumero(bcNum)
@@ -40,6 +41,7 @@ public class ArticleMapper {
                 .reference(dto.getReference())
                 .name(dto.getName())
                 .quantityInStock(dto.getQuantityInStock())
+                .quantityDamaged(dto.getQuantityDamaged())
                 .totalReceived(dto.getTotalReceived() == null ? 0 : dto.getTotalReceived())
                 .type(dto.getType())
                 .build();
