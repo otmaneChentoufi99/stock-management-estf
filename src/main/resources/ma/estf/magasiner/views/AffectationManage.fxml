@@ -2,9 +2,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.text.Font?>
 
-<VBox spacing="15" prefWidth="800" prefHeight="600" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+<VBox spacing="15" prefWidth="900" prefHeight="700" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
       fx:controller="ma.estf.magasiner.controllers.AffectationManageController"
       style="-fx-background-color: #f8f9fa;">
     
@@ -27,46 +26,43 @@
         </HBox>
     </HBox>
 
-    <!-- Items Table -->
-    <TableView fx:id="itemsTable" VBox.vgrow="ALWAYS" style="-fx-background-radius: 5;">
-        <columns>
-            <TableColumn fx:id="colRef" text="Référence" prefWidth="120"/>
-            <TableColumn fx:id="colName" text="Désignation" prefWidth="250"/>
-            <TableColumn fx:id="colQuantity" text="Qté Actuelle" prefWidth="100"/>
-            <TableColumn fx:id="colInventory" text="N° Inventaire" prefWidth="150"/>
-            <TableColumn fx:id="colCondition" text="État" prefWidth="100"/>
-        </columns>
-    </TableView>
+    <SplitPane dividerPositions="0.6" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+        <!-- Left: Current Items -->
+        <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 10;">
+            <Label text="Articles de cette affectation" style="-fx-font-weight: bold; -fx-text-fill: #34495e;"/>
+            <TableView fx:id="itemsTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colRef" text="Référence" prefWidth="90"/>
+                    <TableColumn fx:id="colName" text="Désignation" prefWidth="180"/>
+                    <TableColumn fx:id="colQuantity" text="Qté" prefWidth="50"/>
+                    <TableColumn fx:id="colInventory" text="N° Inv" prefWidth="100"/>
+                    <TableColumn fx:id="colCondition" text="État" prefWidth="70"/>
+                    <TableColumn fx:id="colSelect" text="Action" prefWidth="80"/>
+                </columns>
+            </TableView>
+        </VBox>
 
-    <!-- Detail Action Panel (Visible when an item is selected) -->
-    <VBox fx:id="actionPanel" spacing="10" managed="false" visible="false" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
-        <Label fx:id="selectedItemLabel" text="Action sur l'article sélectionné" style="-fx-font-weight: bold; -fx-text-fill: #34495e;"/>
-        <HBox spacing="20" alignment="CENTER_LEFT">
-            <VBox spacing="5">
-                <Label text="Quantité:"/>
-                <TextField fx:id="actionQuantityField" prefWidth="80"/>
-            </VBox>
-            
-            <Separator orientation="VERTICAL"/>
-            
-            <VBox fx:id="transferBox" spacing="5">
-                <Label text="Nouveau Bénéficiaire / Service:"/>
-                <HBox spacing="10">
-                    <TextField fx:id="targetField" promptText="Nom ou Département" prefWidth="200"/>
-                    <Button text="Transférer Article" onAction="#handleTransferSelected" style="-fx-background-color: #3498db; -fx-text-fill: white;"/>
+        <!-- Right: Selection for Actions -->
+        <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 10;">
+            <Label text="Sélection pour Transfert / Retour" style="-fx-font-weight: bold; -fx-text-fill: #34495e;"/>
+            <TableView fx:id="selectionTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colSelName" text="Désignation" prefWidth="120"/>
+                    <TableColumn fx:id="colSelQty" text="Qté" prefWidth="60"/>
+                    <TableColumn fx:id="colSelCond" text="Nouvel État" prefWidth="100"/>
+                    <TableColumn fx:id="colSelRemove" text="Action" prefWidth="60"/>
+                </columns>
+            </TableView>
+            <Separator/>
+            <VBox spacing="10">
+                <Label text="Cible du Transfert (si applicable):" style="-fx-font-size: 11px;"/>
+                <TextField fx:id="targetField" promptText="Nom ou Département"/>
+                <HBox spacing="10" alignment="CENTER">
+                    <Button text="Transférer" onAction="#handleBulkTransfer" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                    <Button text="Retourner" onAction="#handleBulkReturn" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold;"/>
                 </HBox>
             </VBox>
-            
-            <Separator orientation="VERTICAL"/>
-            
-            <VBox fx:id="returnBox" spacing="5">
-                <Label text="État au retour:"/>
-                <HBox spacing="10">
-                    <ComboBox fx:id="conditionCombo" prefWidth="120"/>
-                    <Button text="Retourner Article" onAction="#handleReturnSelected" style="-fx-background-color: #2ecc71; -fx-text-fill: white;"/>
-                </HBox>
-            </VBox>
-        </HBox>
-    </VBox>
+        </VBox>
+    </SplitPane>
 
 </VBox>

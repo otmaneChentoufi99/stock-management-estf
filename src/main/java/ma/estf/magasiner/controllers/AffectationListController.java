@@ -51,17 +51,10 @@ public class AffectationListController {
 
         colAction.setCellFactory(param -> new TableCell<>() {
             private final Button viewBtn = new Button("Détails");
-            private final Button transferBtn = new Button("Transférer");
-            private final Button returnBtn = new Button("Retourner");
-            private final javafx.scene.layout.HBox pane = new javafx.scene.layout.HBox(5, viewBtn, transferBtn, returnBtn);
+            private final javafx.scene.layout.HBox pane = new javafx.scene.layout.HBox(5, viewBtn);
             {
                 viewBtn.setStyle("-fx-base: #3498db; -fx-text-fill: white;");
-                transferBtn.setStyle("-fx-base: #f39c12; -fx-text-fill: white;");
-                returnBtn.setStyle("-fx-base: #e67e22; -fx-text-fill: white;");
                 
-                transferBtn.setOnAction(event -> handleTransfer(getTableView().getItems().get(getIndex())));
-                returnBtn.setOnAction(event -> handleReturn(getTableView().getItems().get(getIndex())));
-
                 viewBtn.setOnAction(event -> {
                     AffectationDto affectation = getTableView().getItems().get(getIndex());
                     RootController.instance.showAffectationManage(affectation);
@@ -81,80 +74,6 @@ public class AffectationListController {
 
         affectationTable.setItems(filteredList);
         refreshData();
-    }
-
-    private void handleTransfer(AffectationDto aff) {
-        if (aff.getItems() == null || aff.getItems().isEmpty()) return;
-
-        // Choose Article
-        ChoiceDialog<ma.estf.magasiner.models.dto.AffectationItemDto> articleDialog = new ChoiceDialog<>(aff.getItems().get(0), aff.getItems());
-        articleDialog.setTitle("Transférer Matériel");
-        articleDialog.setHeaderText("Sélectionnez l'article à transférer");
-        articleDialog.setContentText("Article:");
-        
-        articleDialog.showAndWait().ifPresent(item -> {
-            // Choose Quantity
-            TextInputDialog qtyDialog = new TextInputDialog(String.valueOf(item.getQuantity()));
-            qtyDialog.setTitle("Quantité");
-            qtyDialog.setHeaderText("Indiquez la quantité à transférer (Max: " + item.getQuantity() + ")");
-            qtyDialog.showAndWait().ifPresent(qtyStr -> {
-                try {
-                    int qty = Integer.parseInt(qtyStr);
-                    if (qty <= 0 || qty > item.getQuantity()) throw new Exception("Quantité invalide.");
-
-                    // Choose Target Name
-                    TextInputDialog targetDialog = new TextInputDialog("");
-                    targetDialog.setTitle("Cible");
-                    targetDialog.setHeaderText("Nom du nouveau bénéficiaire ou Service");
-                    targetDialog.showAndWait().ifPresent(target -> {
-                        try {
-                            new ma.estf.magasiner.services.AffectationService().transferItems(aff.getId(), item.getArticle().getId(), qty, target, null);
-                            refreshData();
-                        } catch (Exception e) {
-                            showError("Erreur de transfert: " + e.getMessage());
-                        }
-                    });
-                } catch (Exception e) {
-                    showError(e.getMessage());
-                }
-            });
-        });
-    }
-
-    private void handleReturn(AffectationDto aff) {
-        if (aff.getItems() == null || aff.getItems().isEmpty()) return;
-
-        ChoiceDialog<ma.estf.magasiner.models.dto.AffectationItemDto> articleDialog = new ChoiceDialog<>(aff.getItems().get(0), aff.getItems());
-        articleDialog.setTitle("Retourner au Stock");
-        articleDialog.setHeaderText("Sélectionnez l'article à retourner");
-        
-        articleDialog.showAndWait().ifPresent(item -> {
-            TextInputDialog qtyDialog = new TextInputDialog(String.valueOf(item.getQuantity()));
-            qtyDialog.setTitle("Quantité");
-            qtyDialog.setHeaderText("Quantité à retourner (Max: " + item.getQuantity() + ")");
-            
-            qtyDialog.showAndWait().ifPresent(qtyStr -> {
-                try {
-                    int qty = Integer.parseInt(qtyStr);
-                    if (qty <= 0 || qty > item.getQuantity()) throw new Exception("Quantité invalide.");
-
-                    ChoiceDialog<String> condDialog = new ChoiceDialog<>("GOOD", "GOOD", "DAMAGED", "BROKEN");
-                    condDialog.setTitle("État");
-                    condDialog.setHeaderText("Sélectionnez l'état du matériel retourné");
-                    
-                    condDialog.showAndWait().ifPresent(cond -> {
-                        try {
-                            new ma.estf.magasiner.services.AffectationService().returnToInventory(aff.getId(), item.getArticle().getId(), qty, cond);
-                            refreshData();
-                        } catch (Exception e) {
-                            showError("Erreur de retour: " + e.getMessage());
-                        }
-                    });
-                } catch (Exception e) {
-                    showError(e.getMessage());
-                }
-            });
-        });
     }
 
     private void showError(String msg) {

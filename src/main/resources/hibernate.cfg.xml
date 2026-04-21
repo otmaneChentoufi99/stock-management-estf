@@ -15,7 +15,7 @@
         <property name="format_sql">true</property>
 
         <!-- Update database schema on startup -->
-        <property name="hbm2ddl.auto">create-drop</property>
+        <property name="hbm2ddl.auto">update</property>
 
         <!-- Connection Pool Size -->
         <property name="connection.pool_size">5</property>
