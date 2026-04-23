@@ -63,35 +63,45 @@ public class AffectationService {
                 );
 
                 if (isMaterial && itemDto.getQuantity() > 1) {
-                    String currentInv = itemDto.getInventoryNumber();
                     for (int i = 0; i < itemDto.getQuantity(); i++) {
+                        String invNum = "-";
+                        if (article.getAvailableInventoryNumbers() != null && !article.getAvailableInventoryNumbers().isEmpty()) {
+                            invNum = article.getAvailableInventoryNumbers().remove(0);
+                        }
                         AffectationItem item = AffectationItem.builder()
                                 .affectation(affectation)
                                 .article(article)
                                 .quantity(1)
-                                .inventoryNumber(currentInv)
+                                .inventoryNumber(invNum)
                                 .condition("GOOD")
                                 .build();
                         affectation.getItems().add(item);
-                        currentInv = generateNextInventoryNumber(currentInv);
                     }
                 } else {
+                    String invNum = itemDto.getInventoryNumber();
+                    if (isMaterial && article.getAvailableInventoryNumbers() != null && !article.getAvailableInventoryNumbers().isEmpty()) {
+                        invNum = article.getAvailableInventoryNumbers().remove(0);
+                    }
                     AffectationItem item = AffectationItem.builder()
                             .affectation(affectation)
                             .article(article)
                             .quantity(itemDto.getQuantity())
-                            .inventoryNumber(itemDto.getInventoryNumber())
+                            .inventoryNumber(invNum)
                             .condition("GOOD")
                             .build();
     
                     affectation.getItems().add(item);
                 }
+                
+                // Save updated article with reduced inventory numbers list
+                session.merge(article);
             }
 
             session.persist(affectation);
             tx.commit();
             
-            return generateInvoice(affectation, isMaterial);
+            new JasperReportService().generateInvoiceAsync(affectation);
+            return null;
         } catch (Exception e) {
             if (tx != null && tx.isActive()) tx.rollback();
             throw e;
@@ -105,25 +115,7 @@ public class AffectationService {
                 .collect(Collectors.toList());
     }
 
-    private String generateNextInventoryNumber(String current) {
-        if (current == null || current.trim().isEmpty()) return current;
-        
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("^(.*?)(\\d+)$");
-        java.util.regex.Matcher m = p.matcher(current.trim());
-        if (m.matches()) {
-            String prefix = m.group(1);
-            String numberStr = m.group(2);
-            try {
-                long number = Long.parseLong(numberStr);
-                number++;
-                String formatStr = "%0" + numberStr.length() + "d";
-                return prefix + String.format(formatStr, number);
-            } catch (NumberFormatException e) {
-                return current + "-1";
-            }
-        }
-        return current + "-1";
-    }
+
 
     private java.io.File generateInvoice(Affectation affectation, boolean isMaterial) throws Exception {
         String filename = "bon_affectation_" + affectation.getId() + ".pdf";

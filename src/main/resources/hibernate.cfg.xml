@@ -15,7 +15,7 @@
         <property name="format_sql">true</property>
 
         <!-- Update database schema on startup -->
-        <property name="hbm2ddl.auto">update</property>
+        <property name="hbm2ddl.auto">create-drop</property>
 
         <!-- Connection Pool Size -->
         <property name="connection.pool_size">5</property>
@@ -23,6 +23,7 @@
         <!-- We will map our annotated classes later here -->
         <mapping class="ma.estf.magasiner.models.entity.Article"/>
         <mapping class="ma.estf.magasiner.models.entity.Department"/>
+        <mapping class="ma.estf.magasiner.models.entity.AppSequence"/>
         <mapping class="ma.estf.magasiner.models.entity.Affectation"/>
         <mapping class="ma.estf.magasiner.models.entity.AffectationItem"/>
         <mapping class="ma.estf.magasiner.models.entity.BonCommande"/>

@@ -27,13 +27,13 @@ public class CartMaterialController {
     @FXML private TableColumn<ArticleDto, String> colStockDate;
     @FXML private TableColumn<ArticleDto, Integer> colStockTotal;
     @FXML private TableColumn<ArticleDto, Integer> colStockQty;
+    @FXML private TableColumn<ArticleDto, String> colStockInv;
     
     @FXML private TextField searchFilterField;
 
     @FXML private TableView<AffectationItemDto> cartTable;
     @FXML private TableColumn<AffectationItemDto, String> colCartName;
     @FXML private TableColumn<AffectationItemDto, Integer> colCartQty;
-    @FXML private TableColumn<AffectationItemDto, String> colCartInv;
     @FXML private TableColumn<AffectationItemDto, Void> colCartActions;
 
     @FXML private ComboBox<String> assigneeDeptComboBox;
@@ -57,39 +57,14 @@ public class CartMaterialController {
         colStockDate.setCellValueFactory(new PropertyValueFactory<>("bonCommandeDate"));
         colStockTotal.setCellValueFactory(new PropertyValueFactory<>("totalReceived"));
         colStockQty.setCellValueFactory(new PropertyValueFactory<>("quantityInStock"));
+        colStockInv.setCellValueFactory(cellData -> {
+            java.util.List<String> invs = cellData.getValue().getAvailableInventoryNumbers();
+            return new javafx.beans.property.SimpleStringProperty(invs != null ? String.join(", ", invs) : "");
+        });
 
         colCartName.setCellValueFactory(cellData -> 
             new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArticle().getName()));
         colCartQty.setCellValueFactory(new PropertyValueFactory<>("quantity"));
-
-        colCartInv.setCellFactory(param -> new TableCell<>() {
-            private final TextField invField = new TextField();
-            {
-                invField.setPromptText("Obligatoire");
-                invField.textProperty().addListener((obs, oldV, newV) -> {
-                    if (getIndex() >= 0 && getIndex() < getTableView().getItems().size()) {
-                        AffectationItemDto item = getTableView().getItems().get(getIndex());
-                        if (item != null) item.setInventoryNumber(newV);
-                    }
-                });
-            }
-
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || getIndex() < 0 || getIndex() >= getTableView().getItems().size()) {
-                    setGraphic(null);
-                } else {
-                    AffectationItemDto dto = getTableView().getItems().get(getIndex());
-                    if (dto != null) {
-                        invField.setText(dto.getInventoryNumber() != null ? dto.getInventoryNumber() : "");
-                        setGraphic(invField);
-                    } else {
-                        setGraphic(null);
-                    }
-                }
-            }
-        });
 
         colCartActions.setCellFactory(param -> new TableCell<>() {
             private final Button btnSub = new Button("Supprimer");
@@ -215,15 +190,6 @@ public class CartMaterialController {
             return;
         }
 
-        // VALIDATION: Inventory Number is REQUIRED for material.
-        for (AffectationItemDto item : cartItems) {
-            if (item.getInventoryNumber() == null || item.getInventoryNumber().trim().isEmpty()) {
-                statusLabel.setStyle("-fx-text-fill: red;");
-                statusLabel.setText("Inventory number is required for all material articles.");
-                return;
-            }
-        }
-
         DepartmentDto selectedDept = departments.get(sIdx);
         
         AffectationDto affectation = AffectationDto.builder()
@@ -233,22 +199,12 @@ public class CartMaterialController {
             .build();
             
         try {
-            java.io.File invoicePdf = affectationService.checkoutCart(affectation, true); // true for material
+            affectationService.checkoutCart(affectation, true); // true for material
             statusLabel.setStyle("-fx-text-fill: green;");
-            statusLabel.setText("Checkout successful! Opening material invoice...");
+            statusLabel.setText("Checkout successful! Generating documents in background...");
             cartItems.clear();
             employeeNameField.clear();
             refreshData();
-            
-            if (java.awt.Desktop.isDesktopSupported()) {
-                new Thread(() -> {
-                    try {
-                        java.awt.Desktop.getDesktop().open(invoicePdf);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }).start();
-            }
         } catch (Exception e) {
             e.printStackTrace();
             statusLabel.setStyle("-fx-text-fill: red;");

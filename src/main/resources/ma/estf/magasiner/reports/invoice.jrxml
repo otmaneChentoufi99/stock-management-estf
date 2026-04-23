@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+              name="AffectationInvoice" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30" uuid="12345678-1234-1234-1234-123456789013">
+    
+    <style name="Table_TH" mode="Opaque" backcolor="#C8E0EB"/>
+    <style name="Table_CH" mode="Opaque" backcolor="#E6F2F7"/>
+    <style name="Table_TD" mode="Opaque" backcolor="#FFFFFF"/>
+    
+    <subDataset name="ItemsDataset" uuid="12345678-1234-1234-1234-123456789014">
+        <field name="reference" class="java.lang.String"/>
+        <field name="designation" class="java.lang.String"/>
+        <field name="quantity" class="java.lang.Integer"/>
+        <field name="inventoryNumbers" class="java.lang.String"/>
+    </subDataset>
+
+    <parameter name="affectationId" class="java.lang.Long"/>
+    <parameter name="date" class="java.lang.String"/>
+    <parameter name="department" class="java.lang.String"/>
+    <parameter name="beneficiary" class="java.lang.String"/>
+    <parameter name="category" class="java.lang.String"/>
+    <parameter name="itemsDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+    <parameter name="isMaterial" class="java.lang.Boolean"/>
+    
+    <title>
+        <band height="150" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="0" width="535" height="20" uuid="a1111111-1111-1111-1111-111111111111"/>
+                <textElement textAlignment="Center">
+                    <font size="14" isBold="true"/>
+                </textElement>
+                <text><![CDATA[UNIVERSITE SIDI MOHAMED BEN ABDELLAH]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="20" width="535" height="20" uuid="a2222222-2222-2222-2222-222222222222"/>
+                <textElement textAlignment="Center">
+                    <font size="14" isBold="true"/>
+                </textElement>
+                <text><![CDATA[ECOLE SUPERIEURE DE TECHNOLOGIE - FES]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="40" width="535" height="20" uuid="a3333333-3333-3333-3333-333333333333"/>
+                <textElement textAlignment="Center">
+                    <font size="12"/>
+                </textElement>
+                <text><![CDATA[SERVICE ECONOMIQUE]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="80" width="535" height="30" forecolor="#0066CC" uuid="a4444444-4444-4444-4444-444444444444"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["BON DE SORTIE MAGASIN N° " + $P{affectationId} + " (" + $P{category} + ")"]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+    <pageHeader>
+        <band height="80" splitType="Stretch">
+            <textField>
+                <reportElement x="0" y="0" width="260" height="20" uuid="a5555555-5555-5555-5555-555555555555"/>
+                <textElement>
+                    <font size="12"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Fait a Fes, le: " + $P{date}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="270" y="0" width="260" height="20" uuid="a6666666-6666-6666-6666-666666666666"/>
+                <textElement>
+                    <font size="12"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Departement: " + $P{department}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="30" width="260" height="20" uuid="a7777777-7777-7777-7777-777777777777"/>
+                <textElement>
+                    <font size="12"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Beneficiaire: " + $P{beneficiary}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageHeader>
+    <detail>
+        <band height="100" splitType="Stretch">
+            <componentElement>
+                <reportElement x="0" y="0" width="535" height="80" uuid="a8888888-8888-8888-8888-888888888888"/>
+                <jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" 
+                          xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+                    <datasetRun subDataset="ItemsDataset" uuid="a9999999-9999-9999-9999-999999999999">
+                        <dataSourceExpression><![CDATA[$P{itemsDataSource}]]></dataSourceExpression>
+                    </datasetRun>
+                    <jr:column width="100" uuid="c1111111-1111-1111-1111-111111111111">
+                        <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
+                            <staticText>
+                                <reportElement x="0" y="0" width="100" height="30" uuid="f1111111-1111-1111-1111-111111111111"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle">
+                                    <font isBold="true"/>
+                                </textElement>
+                                <text><![CDATA[Reference]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell style="Table_TD" height="30">
+                            <textField>
+                                <reportElement x="5" y="0" width="90" height="30" uuid="d1111111-1111-1111-1111-111111111111"/>
+                                <textElement verticalAlignment="Middle"/>
+                                <textFieldExpression><![CDATA[$F{reference}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="200" uuid="c2222222-2222-2222-2222-222222222222">
+                        <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
+                            <staticText>
+                                <reportElement x="0" y="0" width="200" height="30" uuid="f2222222-2222-2222-2222-222222222222"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle">
+                                    <font isBold="true"/>
+                                </textElement>
+                                <text><![CDATA[Designation]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell style="Table_TD" height="30">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="5" y="0" width="190" height="30" uuid="d2222222-2222-2222-2222-222222222222"/>
+                                <textElement verticalAlignment="Middle"/>
+                                <textFieldExpression><![CDATA[$F{designation}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="80" uuid="c3333333-3333-3333-3333-333333333333">
+                        <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
+                            <staticText>
+                                <reportElement x="0" y="0" width="80" height="30" uuid="f3333333-3333-3333-3333-333333333333"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle">
+                                    <font isBold="true"/>
+                                </textElement>
+                                <text><![CDATA[Qte Livree]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell style="Table_TD" height="30">
+                            <textField>
+                                <reportElement x="0" y="0" width="80" height="30" uuid="d3333333-3333-3333-3333-333333333333"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                                <textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="155" uuid="c4444444-4444-4444-4444-444444444444">
+                        <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
+                            <staticText>
+                                <reportElement x="0" y="0" width="155" height="30" uuid="f4444444-4444-4444-4444-444444444444"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle">
+                                    <font isBold="true"/>
+                                </textElement>
+                                <text><![CDATA[N° Inventaire]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell style="Table_TD" height="30">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="5" y="0" width="145" height="30" uuid="d4444444-4444-4444-4444-444444444444"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                                <textFieldExpression><![CDATA[$F{inventoryNumbers} == null ? "-" : $F{inventoryNumbers}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                </jr:table>
+            </componentElement>
+        </band>
+    </detail>
+    <summary>
+        <band height="100" splitType="Stretch">
+            <staticText>
+                <reportElement x="30" y="50" width="200" height="20" uuid="e1111111-1111-1111-1111-111111111111"/>
+                <textElement>
+                    <font size="12" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Signature du Demandeur]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="300" y="50" width="200" height="20" uuid="e2222222-2222-2222-2222-222222222222"/>
+                <textElement>
+                    <font size="12" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Signature du Magasinier]]></text>
+            </staticText>
+        </band>
+    </summary>
+</jasperReport>

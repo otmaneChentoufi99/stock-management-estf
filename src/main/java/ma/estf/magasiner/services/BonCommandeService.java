@@ -4,12 +4,14 @@ import ma.estf.magasiner.models.dto.BonCommandeDto;
 import java.util.List;
 import ma.estf.magasiner.dao.ArticleDao;
 import ma.estf.magasiner.dao.BonCommandeDao;
+import ma.estf.magasiner.dao.SequenceDao;
 import ma.estf.magasiner.models.entity.Article;
 import ma.estf.magasiner.models.entity.BonCommande;
 import ma.estf.magasiner.models.entity.LigneBonCommande;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import ma.estf.magasiner.models.dto.ParsedArticleItem;
 
 public class BonCommandeService {
     private final BonCommandeDao bonCommandeDao = new BonCommandeDao();
@@ -20,14 +22,8 @@ public class BonCommandeService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    public void importExcelAsBonCommande(String filePath, String numeroBC, String serviceDemandeur, String type) throws Exception {
-        BonCommande bc = BonCommande.builder()
-                .numero(numeroBC)
-                .dateBC(LocalDate.now().toString())
-                .serviceDemandeur(serviceDemandeur)
-                .statut("Reçu")
-                .lignes(new ArrayList<>())
-                .build();
+    public List<ParsedArticleItem> parseExcelBonCommande(String filePath, String type) throws Exception {
+        List<ParsedArticleItem> items = new ArrayList<>();
 
         try (java.io.FileInputStream fis = new java.io.FileInputStream(filePath);
                 org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(fis)) {
@@ -87,45 +83,74 @@ public class BonCommandeService {
                     }
 
                     if (quantity > 0) {
-                        String ref = "REF-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1000);
-
-                        Article article = Article.builder()
-                                .reference(ref)
-                                .name(designation)
-                                .quantityInStock(0) // Start with 0
-                                .quantityDamaged(0)
-                                .totalReceived(quantity)
-                                .type(type)
-                                .build();
-
-                        articleDao.save(article);
-                        
-                        // Record IN movement
-                        new MovementService().recordMovement(
-                            ma.estf.magasiner.models.entity.MovementType.IN, 
-                            article.getId(), 
-                            quantity, 
-                            "FOURNISSEUR", 
-                            "STOCK", 
-                            numeroBC
-                        );
-
-                        LigneBonCommande ligne = LigneBonCommande.builder()
-                                .bonCommande(bc)
-                                .article(article)
-                                .quantiteCommandee(quantity)
-                                .quantiteLivree(quantity)
-                                .build();
-
-                        bc.getLignes().add(ligne);
+                        boolean needsInventoryNumber = "MATERIEL".equals(type);
+                        items.add(new ParsedArticleItem(designation, quantity, needsInventoryNumber));
                     }
                 }
             }
         }
 
-        if (bc.getLignes().isEmpty()) {
+        if (items.isEmpty()) {
             throw new Exception(
                     "L'importation a échoué : Impossible de trouver les colonnes QTE et DESIGNATION, ou les lignes sont vides.");
+        }
+
+        return items;
+    }
+
+    public void saveBonCommande(String numeroBC, String serviceDemandeur, String type, List<ParsedArticleItem> items) throws Exception {
+        BonCommande bc = BonCommande.builder()
+                .numero(numeroBC)
+                .dateBC(LocalDate.now().toString())
+                .serviceDemandeur(serviceDemandeur)
+                .statut("Reçu")
+                .lignes(new ArrayList<>())
+                .build();
+
+        for (ParsedArticleItem item : items) {
+            String ref = "REF-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1000);
+
+            List<String> invNumbers = new ArrayList<>();
+            if (item.isNeedsInventoryNumber() && item.getQuantity() > 0) {
+                SequenceDao sequenceDao = new SequenceDao();
+                for (int i = 0; i < item.getQuantity(); i++) {
+                    invNumbers.add(sequenceDao.getNextInventoryNumber());
+                }
+                
+                // No labels in importation phase anymore
+                // new JasperReportService().generateLabelsForImportAsync(invNumbers, item.getDesignation());
+            }
+
+            Article article = Article.builder()
+                    .reference(ref)
+                    .name(item.getDesignation())
+                    .quantityInStock(0) // Start with 0
+                    .quantityDamaged(0)
+                    .totalReceived(item.getQuantity())
+                    .type(type)
+                    .availableInventoryNumbers(invNumbers)
+                    .build();
+
+            articleDao.save(article);
+            
+            // Record IN movement
+            new MovementService().recordMovement(
+                ma.estf.magasiner.models.entity.MovementType.IN, 
+                article.getId(), 
+                item.getQuantity(), 
+                "FOURNISSEUR", 
+                "STOCK", 
+                numeroBC
+            );
+
+            LigneBonCommande ligne = LigneBonCommande.builder()
+                    .bonCommande(bc)
+                    .article(article)
+                    .quantiteCommandee(item.getQuantity())
+                    .quantiteLivree(item.getQuantity())
+                    .build();
+
+            bc.getLignes().add(ligne);
         }
 
         bonCommandeDao.save(bc);

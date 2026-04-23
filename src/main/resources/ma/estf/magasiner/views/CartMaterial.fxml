@@ -26,6 +26,7 @@
                     <TableColumn fx:id="colStockDate" text="Date" prefWidth="80"/>
                     <TableColumn fx:id="colStockTotal" text="Rec." prefWidth="50"/>
                     <TableColumn fx:id="colStockQty" text="Avail." prefWidth="50"/>
+                    <TableColumn fx:id="colStockInv" text="Avail. Inv." prefWidth="120"/>
                 </columns>
             </TableView>
         </VBox>
@@ -37,7 +38,6 @@
                 <columns>
                     <TableColumn fx:id="colCartName" text="Name" prefWidth="250"/>
                     <TableColumn fx:id="colCartQty" text="Qty" prefWidth="50"/>
-                    <TableColumn fx:id="colCartInv" text="N° Inv." prefWidth="100"/>
                     <TableColumn fx:id="colCartActions" text="Actions" prefWidth="120"/>
                 </columns>
             </TableView>

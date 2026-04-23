@@ -31,6 +31,7 @@ public class ArticleMapper {
                 .bonCommandeNumero(bcNum)
                 .bonCommandeService(bcServ)
                 .bonCommandeDate(bcDate)
+                .availableInventoryNumbers(entity.getAvailableInventoryNumbers() != null ? new java.util.ArrayList<>(entity.getAvailableInventoryNumbers()) : new java.util.ArrayList<>())
                 .build();
     }
 
@@ -44,6 +45,7 @@ public class ArticleMapper {
                 .quantityDamaged(dto.getQuantityDamaged())
                 .totalReceived(dto.getTotalReceived() == null ? 0 : dto.getTotalReceived())
                 .type(dto.getType())
+                .availableInventoryNumbers(dto.getAvailableInventoryNumbers() != null ? new java.util.ArrayList<>(dto.getAvailableInventoryNumbers()) : new java.util.ArrayList<>())
                 .build();
     }
 }
