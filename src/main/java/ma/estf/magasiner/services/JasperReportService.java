@@ -62,9 +62,10 @@ public class JasperReportService {
     }
 
     private void generateInvoice(Affectation affectation, boolean isMaterial) throws Exception {
-        InputStream reportStream = getClass().getResourceAsStream("/ma/estf/magasiner/reports/invoice.jrxml");
+        String templatePath = isMaterial ? "/ma/estf/magasiner/reports/material_fiche.jrxml" : "/ma/estf/magasiner/reports/invoice.jrxml";
+        InputStream reportStream = getClass().getResourceAsStream(templatePath);
         if (reportStream == null) {
-            throw new Exception("Invoice report template not found.");
+            throw new Exception("Report template not found: " + templatePath);
         }
         JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
 

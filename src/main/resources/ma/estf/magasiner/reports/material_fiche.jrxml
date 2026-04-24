@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport
+        xmlns="http://jasperreports.sourceforge.net/jasperreports"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://jasperreports.sourceforge.net/jasperreports
+        http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+        name="MaterialFiche"
+
+        pageWidth="595"
+        pageHeight="842"
+
+        leftMargin="0"
+        rightMargin="0"
+        topMargin="0"
+        bottomMargin="0"
+
+        columnWidth="595"
+        uuid="bc123456-1234-1234-1234-123456789012">
+
+    <!-- ================= PARAMETERS ================= -->
+    <parameter name="affectationId" class="java.lang.Long"/>
+    <parameter name="date" class="java.lang.String"/>
+    <parameter name="department" class="java.lang.String"/>
+    <parameter name="beneficiary" class="java.lang.String"/>
+
+    <!-- ================= FIELDS ================= -->
+    <field name="designation" class="java.lang.String"/>
+    <field name="quantity" class="java.lang.Integer"/>
+    <field name="inventoryNumbers" class="java.lang.String"/>
+    <field name="reference" class="java.lang.String"/>
+
+    <!-- ================= DETAIL ================= -->
+    <detail>
+        <band height="842">
+
+            <!-- ✅ FULL PAGE BACKGROUND (ABSOLUTE) -->
+            <rectangle>
+                <reportElement
+                        x="0"
+                        y="0"
+                        width="595"
+                        height="842"
+                        mode="Opaque"
+                        backcolor="#81D8D0"/>
+                <graphicElement>
+                    <pen lineWidth="0"/>
+                </graphicElement>
+            </rectangle>
+
+            <!-- ================= HEADER ================= -->
+            <staticText>
+                <reportElement x="0" y="20" width="595" height="14"/>
+                <textElement textAlignment="Center">
+                    <font size="10" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Royaume du Maroc]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="0" y="36" width="595" height="14"/>
+                <textElement textAlignment="Center">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[Ministère de l'Enseignement Supérieur, de la Recherche Scientifique et de l'Innovation]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="0" y="52" width="595" height="14"/>
+                <textElement textAlignment="Center">
+                    <font size="10"/>
+                </textElement>
+                <text><![CDATA[Université Sidi Mohamed Ben Abdellah]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="0" y="70" width="595" height="20"/>
+                <textElement textAlignment="Center">
+                    <font size="12" isBold="true"/>
+                </textElement>
+                <text><![CDATA[ECOLE SUPERIEURE DE TECHNOLOGIE DE FES]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="0" y="100" width="595" height="24"/>
+                <textElement textAlignment="Center">
+                    <font size="14" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["FICHE N° : " + $P{affectationId}]]></textFieldExpression>
+            </textField>
+
+            <!-- ================= MAIN BOX ================= -->
+            <rectangle>
+                <reportElement
+                        x="20" y="140"
+                        width="555" height="520"
+                        mode="Transparent"/>
+                <graphicElement>
+                    <pen lineWidth="1.5"/>
+                </graphicElement>
+            </rectangle>
+
+
+            <!-- Inventory -->
+            <line><reportElement x="20" y="170" width="555" height="1"/></line>
+            <line><reportElement x="297" y="140" width="1" height="30"/></line>
+
+            <staticText>
+                <reportElement x="30" y="148" width="250" height="18"/>
+                <text><![CDATA[N° D'INVENTAIRE : PRESIDENCE DE L'UNIVERSITE]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="305" y="148" width="200" height="18"/>
+                <text><![CDATA[N° D'INVENTAIRE : EST FES]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="505" y="148" width="60" height="18"/>
+                <textElement>
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{inventoryNumbers}]]></textFieldExpression>
+            </textField>
+
+            <!-- Quantity -->
+            <line><reportElement x="20" y="200" width="555" height="1"/></line>
+
+            <staticText>
+                <reportElement x="30" y="178" width="150" height="18"/>
+                <text><![CDATA[NOMBRE D'OBJET]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="190" y="178" width="100" height="18"/>
+                <textElement>
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+            </textField>
+
+            <!-- DESIGNATION -->
+            <line><reportElement x="20" y="250" width="555" height="1"/></line>
+
+            <staticText>
+                <reportElement x="20" y="215" width="555" height="18"/>
+                <textElement textAlignment="Center">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[DESIGNATION]]></text>
+            </staticText>
+
+            <textField textAdjust="StretchHeight">
+                <reportElement x="30" y="235" width="535" height="20"/>
+                <textElement textAlignment="Center">
+                    <font size="12" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{designation}]]></textFieldExpression>
+            </textField>
+
+            <!-- CARACTERISTIQUES -->
+            <line><reportElement x="20" y="330" width="555" height="1"/></line>
+
+            <staticText>
+                <reportElement x="20" y="260" width="555" height="18"/>
+                <textElement textAlignment="Center">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[CARACTERISTIQUES]]></text>
+            </staticText>
+
+            <textField textAdjust="StretchHeight">
+                <reportElement x="30" y="285" width="535" height="40"/>
+                <textFieldExpression><![CDATA["Référence : " + $F{reference}]]></textFieldExpression>
+            </textField>
+
+            <!-- DATE / AFFECTATION -->
+            <line><reportElement x="20" y="360" width="555" height="1"/></line>
+
+            <staticText>
+                <reportElement x="30" y="340" width="150" height="18"/>
+                <text><![CDATA[DATE D'ENTREE]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="180" y="340" width="150" height="18"/>
+                <textFieldExpression><![CDATA[$P{date}]]></textFieldExpression>
+            </textField>
+
+            <line><reportElement x="20" y="390" width="555" height="1"/></line>
+
+            <staticText>
+                <reportElement x="30" y="370" width="150" height="18"/>
+                <text><![CDATA[AFFECTATION]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="180" y="370" width="370" height="18"/>
+                <textElement>
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{department}]]></textFieldExpression>
+            </textField>
+
+            <!-- SIGNATURES -->
+            <line><reportElement x="20" y="470" width="555" height="1"/></line>
+            <line><reportElement x="350" y="390" width="1" height="80"/></line>
+
+            <staticText>
+                <reportElement x="30" y="400" width="200" height="18"/>
+                <text><![CDATA[PRISE EN CHARGE PAR]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="30" y="430" width="300" height="16"/>
+                <textFieldExpression><![CDATA["M : " + $P{beneficiary}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="30" y="450" width="300" height="16"/>
+                <textFieldExpression><![CDATA["LE : " + $P{date}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="365" y="400" width="150" height="18"/>
+                <text><![CDATA[EMARGEMENT]]></text>
+            </staticText>
+
+            <!-- OBSERVATIONS -->
+            <staticText>
+                <reportElement x="20" y="680" width="200" height="18"/>
+                <textElement>
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[OBSERVATIONS]]></text>
+            </staticText>
+
+            <rectangle>
+                <reportElement
+                        x="20" y="705"
+                        width="555" height="90"
+                        mode="Transparent"/>
+                <graphicElement>
+                    <pen lineWidth="1"/>
+                </graphicElement>
+            </rectangle>
+
+        </band>
+    </detail>
+</jasperReport>
