@@ -13,6 +13,8 @@ import ma.estf.magasiner.models.dto.DepartmentDto;
 import ma.estf.magasiner.services.AffectationService;
 import ma.estf.magasiner.services.ArticleService;
 import ma.estf.magasiner.services.DepartmentService;
+import ma.estf.magasiner.models.dto.CategoryDto;
+import ma.estf.magasiner.services.CategoryService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +29,10 @@ public class CartConsumableController {
     @FXML private TableColumn<ArticleDto, String> colStockDate;
     @FXML private TableColumn<ArticleDto, Integer> colStockTotal;
     @FXML private TableColumn<ArticleDto, Integer> colStockQty;
+    @FXML private TableColumn<ArticleDto, String> colStockCategory;
     
     @FXML private TextField searchFilterField;
+    @FXML private ComboBox<CategoryDto> categoryFilterComboBox;
 
     @FXML private TableView<AffectationItemDto> cartTable;
     @FXML private TableColumn<AffectationItemDto, String> colCartName;
@@ -42,6 +46,7 @@ public class CartConsumableController {
     private final ArticleService articleService = new ArticleService();
     private final DepartmentService deptService = new DepartmentService();
     private final AffectationService affectationService = new AffectationService();
+    private final CategoryService categoryService = new CategoryService();
 
     private ObservableList<AffectationItemDto> cartItems = FXCollections.observableArrayList();
     private ObservableList<ArticleDto> masterStockList = FXCollections.observableArrayList();
@@ -56,6 +61,8 @@ public class CartConsumableController {
         colStockDate.setCellValueFactory(new PropertyValueFactory<>("bonCommandeDate"));
         colStockTotal.setCellValueFactory(new PropertyValueFactory<>("totalReceived"));
         colStockQty.setCellValueFactory(new PropertyValueFactory<>("quantityInStock"));
+        colStockCategory.setCellValueFactory(cellData -> 
+            new javafx.beans.property.SimpleStringProperty(cellData.getValue().getCategory() != null ? cellData.getValue().getCategory().getName() : ""));
 
         colCartName.setCellValueFactory(cellData -> 
             new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArticle().getName()));
@@ -98,7 +105,11 @@ public class CartConsumableController {
         cartTable.setItems(cartItems);
         
         searchFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
-            filterStock(newValue);
+            filterStock(newValue, categoryFilterComboBox.getValue());
+        });
+
+        categoryFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            filterStock(searchFilterField.getText(), newValue);
         });
 
         refreshData();
@@ -115,7 +126,14 @@ public class CartConsumableController {
             .filter(a -> "CONSOMMABLE".equals(a.getType()))
             .collect(Collectors.toList()));
 
-        filterStock(searchFilterField.getText());
+        List<CategoryDto> categories = categoryService.findAll();
+        List<CategoryDto> comboItems = new ArrayList<>();
+        comboItems.add(CategoryDto.builder().id(-1L).name("All Categories").build());
+        comboItems.addAll(categories);
+        categoryFilterComboBox.setItems(FXCollections.observableArrayList(comboItems));
+        categoryFilterComboBox.getSelectionModel().selectFirst();
+
+        filterStock(searchFilterField.getText(), categoryFilterComboBox.getValue());
         
         departments = deptService.getAllDepartments();
         assigneeDeptComboBox.setItems(FXCollections.observableArrayList(
@@ -123,18 +141,32 @@ public class CartConsumableController {
         ));
     }
 
-    private void filterStock(String filter) {
-        if (filter == null || filter.trim().isEmpty()) {
+    private void filterStock(String filter, CategoryDto category) {
+        boolean noFilter = (filter == null || filter.trim().isEmpty());
+        boolean noCategory = (category == null || category.getId() == -1L);
+
+        if (noFilter && noCategory) {
             stockTable.setItems(masterStockList);
             return;
         }
-        String lowerCaseFilter = filter.toLowerCase();
+
+        String lowerCaseFilter = noFilter ? "" : filter.toLowerCase();
+        
         List<ArticleDto> filtered = masterStockList.stream().filter(article -> {
-            if (article.getName() != null && article.getName().toLowerCase().contains(lowerCaseFilter)) return true;
-            if (article.getBonCommandeService() != null && article.getBonCommandeService().toLowerCase().contains(lowerCaseFilter)) return true;
-            if (article.getBonCommandeNumero() != null && article.getBonCommandeNumero().toLowerCase().contains(lowerCaseFilter)) return true;
-            if (article.getBonCommandeDate() != null && article.getBonCommandeDate().toLowerCase().contains(lowerCaseFilter)) return true;
-            return false;
+            boolean matchText = noFilter;
+            if (!noFilter) {
+                if (article.getName() != null && article.getName().toLowerCase().contains(lowerCaseFilter)) matchText = true;
+                else if (article.getBonCommandeService() != null && article.getBonCommandeService().toLowerCase().contains(lowerCaseFilter)) matchText = true;
+                else if (article.getBonCommandeNumero() != null && article.getBonCommandeNumero().toLowerCase().contains(lowerCaseFilter)) matchText = true;
+                else if (article.getBonCommandeDate() != null && article.getBonCommandeDate().toLowerCase().contains(lowerCaseFilter)) matchText = true;
+            }
+
+            boolean matchCategory = noCategory;
+            if (!noCategory) {
+                if (article.getCategory() != null && article.getCategory().getId().equals(category.getId())) matchCategory = true;
+            }
+
+            return matchText && matchCategory;
         }).toList();
         stockTable.setItems(FXCollections.observableArrayList(filtered));
     }

@@ -7,7 +7,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import ma.estf.magasiner.models.dto.ParsedArticleItem;
+import ma.estf.magasiner.models.dto.CategoryDto;
 import ma.estf.magasiner.services.BonCommandeService;
+import ma.estf.magasiner.services.CategoryService;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.cell.ComboBoxTableCell;
 
 import java.io.File;
 import java.util.List;
@@ -25,11 +30,14 @@ public class ImportCSVController {
     @FXML private TableColumn<ParsedArticleItem, String> colDesignation;
     @FXML private TableColumn<ParsedArticleItem, Integer> colQuantity;
     @FXML private TableColumn<ParsedArticleItem, Boolean> colNeedsInvNum;
+    @FXML private TableColumn<ParsedArticleItem, CategoryDto> colCategory;
     @FXML private Button confirmImportBtn;
 
     private File selectedFile;
     private final BonCommandeService service = new BonCommandeService();
+    private final CategoryService categoryService = new CategoryService();
     private List<ParsedArticleItem> currentItems;
+    private ObservableList<CategoryDto> categories;
 
     @FXML
     public void initialize() {
@@ -39,6 +47,10 @@ public class ImportCSVController {
         
         colNeedsInvNum.setCellValueFactory(cellData -> cellData.getValue().needsInventoryNumberProperty());
         colNeedsInvNum.setCellFactory(CheckBoxTableCell.forTableColumn(colNeedsInvNum));
+        
+        categories = FXCollections.observableArrayList(categoryService.findAll());
+        colCategory.setCellValueFactory(cellData -> cellData.getValue().categoryProperty());
+        colCategory.setCellFactory(ComboBoxTableCell.forTableColumn(categories));
         
         tableContainer.setVisible(false);
         tableContainer.setManaged(false);

@@ -128,6 +128,7 @@ public class BonCommandeService {
                     .quantityDamaged(0)
                     .totalReceived(item.getQuantity())
                     .type(type)
+                    .category(ma.estf.magasiner.models.mapper.CategoryMapper.toEntity(item.getCategory()))
                     .availableInventoryNumbers(invNumbers)
                     .build();
 

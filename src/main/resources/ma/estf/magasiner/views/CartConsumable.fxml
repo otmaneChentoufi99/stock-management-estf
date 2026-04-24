@@ -14,7 +14,8 @@
             <Label text="Available Consumable Articles" style="-fx-font-weight: bold;"/>
             
             <HBox spacing="10">
-                <TextField fx:id="searchFilterField" promptText="Search by Name, Service, N° BC or Year..." prefWidth="400"/>
+                <TextField fx:id="searchFilterField" promptText="Search by Name, Service, N° BC or Year..." prefWidth="300"/>
+                <ComboBox fx:id="categoryFilterComboBox" promptText="All Categories" prefWidth="150"/>
                 <Button text="Add to Cart &gt;&gt;" onAction="#handleAddToCart" style="-fx-base: #3498db; -fx-text-fill: white;"/>
             </HBox>
             
@@ -23,6 +24,7 @@
                     <TableColumn fx:id="colStockName" text="Name" prefWidth="150"/>
                     <TableColumn fx:id="colStockService" text="Service" prefWidth="120"/>
                     <TableColumn fx:id="colStockBC" text="N° BC" prefWidth="90"/>
+                    <TableColumn fx:id="colStockCategory" text="Catégorie" prefWidth="100"/>
                     <TableColumn fx:id="colStockDate" text="Date" prefWidth="80"/>
                     <TableColumn fx:id="colStockTotal" text="Rec." prefWidth="50"/>
                     <TableColumn fx:id="colStockQty" text="Avail." prefWidth="50"/>

@@ -34,6 +34,10 @@ public class Article {
     @Column(name = "type", nullable = true)
     private String type; // MATERIEL or CONSOMMABLE
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "article_inventory_numbers", joinColumns = @JoinColumn(name = "article_id"))
     @Column(name = "inventory_number")

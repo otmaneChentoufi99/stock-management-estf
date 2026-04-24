@@ -50,6 +50,7 @@
                 <TableColumn fx:id="colDesignation" text="Désignation" prefWidth="300"/>
                 <TableColumn fx:id="colQuantity" text="Quantité" prefWidth="100"/>
                 <TableColumn fx:id="colNeedsInvNum" text="N° Inventaire ?" prefWidth="120"/>
+                <TableColumn fx:id="colCategory" text="Catégorie" prefWidth="150"/>
             </columns>
         </TableView>
         <Button fx:id="confirmImportBtn" text="Confirm Import" onAction="#handleConfirmImport" style="-fx-base: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px;"/>

@@ -29,5 +29,6 @@
         <mapping class="ma.estf.magasiner.models.entity.BonCommande"/>
         <mapping class="ma.estf.magasiner.models.entity.Movement"/>
         <mapping class="ma.estf.magasiner.models.entity.LigneBonCommande"/>
+        <mapping class="ma.estf.magasiner.models.entity.Category"/>
     </session-factory>
 </hibernate-configuration>

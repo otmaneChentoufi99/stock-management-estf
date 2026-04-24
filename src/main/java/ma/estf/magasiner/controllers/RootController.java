@@ -33,6 +33,7 @@ public class RootController {
     @FXML public void showAffectationList() { loadView("AffectationList.fxml"); }
     @FXML public void showMovements() { loadView("MovementHistory.fxml"); }
     @FXML public void showHR() { loadView("HR.fxml"); }
+    @FXML public void showCategories() { loadView("Category.fxml"); }
 
     public void showAffectationManage(ma.estf.magasiner.models.dto.AffectationDto aff) {
         try {
