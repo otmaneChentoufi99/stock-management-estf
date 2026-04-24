@@ -39,7 +39,7 @@ public class CategoryController {
     public void handleDeleteCategory() {
         CategoryDto selected = categoryListView.getSelectionModel().getSelectedItem();
 //        if (selected != null) {
-//            categoryService.delete(selected.getId());
+//            categoryService.delete(selected);
 //            refreshData();
 //        }
     }
