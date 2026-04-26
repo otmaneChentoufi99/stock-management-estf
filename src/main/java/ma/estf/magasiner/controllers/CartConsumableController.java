@@ -156,7 +156,7 @@ public class CartConsumableController {
             boolean matchText = noFilter;
             if (!noFilter) {
                 if (article.getName() != null && article.getName().toLowerCase().contains(lowerCaseFilter)) matchText = true;
-                else if (article.getBonCommandeService() != null && article.getBonCommandeService().toLowerCase().contains(lowerCaseFilter)) matchText = true;
+                else if (article.getBonCommandeFournisseur() != null && article.getBonCommandeFournisseur().toLowerCase().contains(lowerCaseFilter)) matchText = true;
                 else if (article.getBonCommandeNumero() != null && article.getBonCommandeNumero().toLowerCase().contains(lowerCaseFilter)) matchText = true;
                 else if (article.getBonCommandeDate() != null && article.getBonCommandeDate().toLowerCase().contains(lowerCaseFilter)) matchText = true;
             }

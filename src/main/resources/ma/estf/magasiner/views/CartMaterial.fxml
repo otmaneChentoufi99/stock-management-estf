@@ -22,8 +22,8 @@
             <TableView fx:id="stockTable" prefHeight="350">
                 <columns>
                     <TableColumn fx:id="colStockName" text="Name" prefWidth="150"/>
-                    <TableColumn fx:id="colStockService" text="Service" prefWidth="120"/>
                     <TableColumn fx:id="colStockBC" text="N° BC" prefWidth="90"/>
+                    <TableColumn fx:id="colFournisseurBC" text="Fournisseur" prefWidth="90"/>
                     <TableColumn fx:id="colStockCategory" text="Catégorie" prefWidth="100"/>
                     <TableColumn fx:id="colStockDate" text="Date" prefWidth="80"/>
                     <TableColumn fx:id="colStockTotal" text="Rec." prefWidth="50"/>

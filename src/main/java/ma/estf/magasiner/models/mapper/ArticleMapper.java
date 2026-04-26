@@ -8,14 +8,14 @@ public class ArticleMapper {
         if (entity == null) return null;
         
         String bcNum = "";
-        String bcServ = "";
+        String bcFournisseur = "";
         String bcDate = "";
         
         if (entity.getLignesBonCommande() != null && !entity.getLignesBonCommande().isEmpty()) {
             ma.estf.magasiner.models.entity.BonCommande bc = entity.getLignesBonCommande().get(0).getBonCommande();
             if (bc != null) {
                 bcNum = bc.getNumero();
-                bcServ = bc.getServiceDemandeur();
+                bcFournisseur = bc.getFournisseur();
                 bcDate = bc.getDateBC();
             }
         }
@@ -29,7 +29,7 @@ public class ArticleMapper {
                 .totalReceived(entity.getTotalReceived() == null ? 0 : entity.getTotalReceived())
                 .type(entity.getType())
                 .bonCommandeNumero(bcNum)
-                .bonCommandeService(bcServ)
+                .bonCommandeFournisseur(bcFournisseur)
                 .bonCommandeDate(bcDate)
                 .category(CategoryMapper.toDto(entity.getCategory()))
                 .availableInventoryNumbers(entity.getAvailableInventoryNumbers() != null ? new java.util.ArrayList<>(entity.getAvailableInventoryNumbers()) : new java.util.ArrayList<>())

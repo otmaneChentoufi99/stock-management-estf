@@ -1,139 +1,177 @@
 package ma.estf.magasiner.controllers;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import ma.estf.magasiner.models.dto.ParsedArticleItem;
 import ma.estf.magasiner.models.dto.CategoryDto;
+import ma.estf.magasiner.models.dto.ParsedArticleItem;
+import ma.estf.magasiner.models.dto.ParsedBonCommande;
 import ma.estf.magasiner.services.BonCommandeService;
 import ma.estf.magasiner.services.CategoryService;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.control.cell.ComboBoxTableCell;
 
 import java.io.File;
-import java.util.List;
 
 public class ImportCSVController {
 
-    @FXML private TextField numeroBCField;
-    @FXML private TextField serviceDemandeurField;
-    @FXML private javafx.scene.control.ComboBox<String> typeComboBox;
+    @FXML private ComboBox<String> typeComboBox;
     @FXML private Label selectedFileLabel;
     @FXML private Label statusLabel;
-    
+
+    // READ-ONLY display
+    @FXML private Label numeroLabel;
+    @FXML private Label fournisseurLabel;
+
     @FXML private VBox tableContainer;
     @FXML private TableView<ParsedArticleItem> articlesTable;
     @FXML private TableColumn<ParsedArticleItem, String> colDesignation;
     @FXML private TableColumn<ParsedArticleItem, Integer> colQuantity;
     @FXML private TableColumn<ParsedArticleItem, Boolean> colNeedsInvNum;
     @FXML private TableColumn<ParsedArticleItem, CategoryDto> colCategory;
-    @FXML private Button confirmImportBtn;
 
     private File selectedFile;
+
     private final BonCommandeService service = new BonCommandeService();
     private final CategoryService categoryService = new CategoryService();
-    private List<ParsedArticleItem> currentItems;
+
+    private ParsedBonCommande parsedData;
     private ObservableList<CategoryDto> categories;
 
     @FXML
     public void initialize() {
+
         articlesTable.setEditable(true);
+
         colDesignation.setCellValueFactory(new PropertyValueFactory<>("designation"));
         colQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
-        
-        colNeedsInvNum.setCellValueFactory(cellData -> cellData.getValue().needsInventoryNumberProperty());
+
+        colNeedsInvNum.setCellValueFactory(cellData ->
+                cellData.getValue().needsInventoryNumberProperty());
         colNeedsInvNum.setCellFactory(CheckBoxTableCell.forTableColumn(colNeedsInvNum));
-        
+
         categories = FXCollections.observableArrayList(categoryService.findAll());
-        colCategory.setCellValueFactory(cellData -> cellData.getValue().categoryProperty());
+
+        colCategory.setCellValueFactory(cellData ->
+                cellData.getValue().categoryProperty());
+
         colCategory.setCellFactory(ComboBoxTableCell.forTableColumn(categories));
-        
+
         tableContainer.setVisible(false);
         tableContainer.setManaged(false);
     }
 
     @FXML
     public void handleSelectFile() {
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Bon de Commande Excel");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
-        
-        selectedFile = fileChooser.showOpenDialog(numeroBCField.getScene().getWindow());
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Excel Files", "*.xlsx")
+        );
+
+        selectedFile = fileChooser.showOpenDialog(typeComboBox.getScene().getWindow());
+
         if (selectedFile != null) {
             selectedFileLabel.setText(selectedFile.getName());
             statusLabel.setText("");
+
             tableContainer.setVisible(false);
             tableContainer.setManaged(false);
+
+            parsedData = null;
         }
     }
 
     @FXML
     public void handleImport() {
+
         if (selectedFile == null) {
-            statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Please select a CSV/Excel file first.");
-            return;
-        }
-        String numero = numeroBCField.getText();
-        String serviceDemandeur = serviceDemandeurField.getText();
-        String type = typeComboBox.getValue();
-        
-        if (numero == null || numero.trim().isEmpty()) {
-            statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("N° Bon Commande is required.");
+            setError("Please select an Excel file first.");
             return;
         }
 
-        if (type == null || type.trim().isEmpty()) {
-            statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Type de Bon Commande is required.");
+        String type = typeComboBox.getValue();
+
+        if (type == null || type.isEmpty()) {
+            setError("Type de Bon Commande is required.");
             return;
         }
 
         try {
-            currentItems = service.parseExcelBonCommande(selectedFile.getAbsolutePath(), type);
-            articlesTable.getItems().setAll(currentItems);
-            
+            parsedData = service.parseExcelBonCommande(
+                    selectedFile.getAbsolutePath(),
+                    type
+            );
+
+
+            // Load table
+            articlesTable.getItems().setAll(parsedData.getItems());
+
             tableContainer.setVisible(true);
             tableContainer.setManaged(true);
-            
-            statusLabel.setStyle("-fx-text-fill: green;");
-            statusLabel.setText("File parsed successfully. Please review the items below.");
+
+            setSuccess("File parsed successfully. Review and confirm.");
+
         } catch (Exception e) {
             e.printStackTrace();
-            statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Parsing failed: " + e.getMessage());
+            setError("Parsing failed: " + e.getMessage());
         }
     }
 
     @FXML
     public void handleConfirmImport() {
-        String numero = numeroBCField.getText();
-        String serviceDemandeur = serviceDemandeurField.getText();
+
+        if (parsedData == null) {
+            setError("Please import a file first.");
+            return;
+        }
+
         String type = typeComboBox.getValue();
 
+        if (type == null || type.isEmpty()) {
+            setError("Type is required.");
+            return;
+        }
+
         try {
-            service.saveBonCommande(numero, serviceDemandeur, type, currentItems);
-            statusLabel.setStyle("-fx-text-fill: green;");
-            statusLabel.setText("Import successful! Data added to database.");
-            
-            numeroBCField.clear();
-            serviceDemandeurField.clear();
-            typeComboBox.getSelectionModel().clearSelection();
-            selectedFile = null;
-            selectedFileLabel.setText("No file selected...");
-            tableContainer.setVisible(false);
-            tableContainer.setManaged(false);
-            articlesTable.getItems().clear();
-            currentItems = null;
+            service.saveBonCommande(parsedData, type);
+
+            setSuccess("Import successful!");
+
+            resetUI();
+
         } catch (Exception e) {
             e.printStackTrace();
-            statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Import failed: " + e.getMessage());
+            setError("Import failed: " + e.getMessage());
         }
+    }
+
+    private void resetUI() {
+        selectedFile = null;
+        parsedData = null;
+
+        selectedFileLabel.setText("No file selected...");
+
+        articlesTable.getItems().clear();
+
+        tableContainer.setVisible(false);
+        tableContainer.setManaged(false);
+
+        typeComboBox.getSelectionModel().clearSelection();
+    }
+
+    private void setError(String msg) {
+        statusLabel.setStyle("-fx-text-fill: red;");
+        statusLabel.setText(msg);
+    }
+
+    private void setSuccess(String msg) {
+        statusLabel.setStyle("-fx-text-fill: green;");
+        statusLabel.setText(msg);
     }
 }

@@ -16,7 +16,7 @@ public class ArticleDto {
     private String type;
     
     private String bonCommandeNumero;
-    private String bonCommandeService;
+    private String bonCommandeFournisseur;
     private String bonCommandeDate;
     private CategoryDto category;
     private java.util.List<String> availableInventoryNumbers;

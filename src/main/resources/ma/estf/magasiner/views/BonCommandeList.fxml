@@ -11,8 +11,8 @@
     <TableView fx:id="bcTable" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn fx:id="colNumero" text="N° BC" prefWidth="150"/>
+            <TableColumn fx:id="fournissuer" text="fournisseur" prefWidth="150"/>
             <TableColumn fx:id="colDate" text="Date" prefWidth="150"/>
-            <TableColumn fx:id="colService" text="Service Demandeur" prefWidth="250"/>
             <TableColumn fx:id="colStatut" text="Statut" prefWidth="100"/>
             <TableColumn fx:id="colAction" text="Actions" prefWidth="150"/>
         </columns>

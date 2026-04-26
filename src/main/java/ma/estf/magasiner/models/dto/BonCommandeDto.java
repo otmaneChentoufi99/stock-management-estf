@@ -12,6 +12,7 @@ public class BonCommandeDto {
     private String numero;
     private String dateBC;
     private String serviceDemandeur;
+    private String fournisseur;
     private String statut;
     private List<LigneBonCommandeDto> lignes;
 }

@@ -9,9 +9,21 @@ import ma.estf.magasiner.models.entity.Article;
 import ma.estf.magasiner.models.entity.BonCommande;
 import ma.estf.magasiner.models.entity.LigneBonCommande;
 
-import java.time.LocalDate;
+import java.io.FileInputStream;
 import java.util.ArrayList;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import ma.estf.magasiner.models.dto.ParsedArticleItem;
+import ma.estf.magasiner.models.dto.ParsedBonCommande;
+
+import java.time.LocalDate;
+
 
 public class BonCommandeService {
     private final BonCommandeDao bonCommandeDao = new BonCommandeDao();
@@ -22,109 +34,244 @@ public class BonCommandeService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    public List<ParsedArticleItem> parseExcelBonCommande(String filePath, String type) throws Exception {
+    public ParsedBonCommande parseExcelBonCommande(String filePath, String type) throws Exception {
+
         List<ParsedArticleItem> items = new ArrayList<>();
 
-        try (java.io.FileInputStream fis = new java.io.FileInputStream(filePath);
-                org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(fis)) {
+        String numero = null;
+        String fournisseur = null;
 
-            org.apache.poi.ss.usermodel.Sheet sheet = workbook.getSheetAt(0);
+        try (FileInputStream fis = new FileInputStream(filePath);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+
             boolean inTable = false;
             int qteColIndex = -1;
             int designationColIndex = -1;
 
-            for (org.apache.poi.ss.usermodel.Row row : sheet) {
-                // Search for the header row
-                if (!inTable) {
-                    for (org.apache.poi.ss.usermodel.Cell cell : row) {
-                        if (cell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
-                            String val = cell.getStringCellValue().trim().toUpperCase();
+            for (Row row : sheet) {
+
+                // 🔍 Scan all cells in row (metadata + header detection)
+                for (Cell cell : row) {
+
+                    if (cell.getCellType() == CellType.STRING) {
+
+                        String raw = cell.getStringCellValue();
+                        String val = raw.trim().toUpperCase();
+
+                        // ========================
+                        // 🔍 Extract NUMERO BC
+                        // ========================
+                        if (numero == null && (val.contains("BON DE COMMANDE") )) {
+                            numero = extractNumeroBC(row);
+                        }
+
+                        // ========================
+                        // 🔍 Extract FOURNISSEUR
+                        // ========================
+                        if (fournisseur == null && val.contains("FOURNISSEUR")) {
+                            fournisseur = extractFournisseur(row);
+                        }
+
+                        // ========================
+                        // 📊 Detect TABLE HEADER
+                        // ========================
+                        if (!inTable) {
                             if (val.contains("DESIGNATION") || val.contains("DÉSIGNATION")) {
-                                inTable = true;
                                 designationColIndex = cell.getColumnIndex();
                             }
                             if (val.contains("QTE") || val.contains("QTÉ")) {
                                 qteColIndex = cell.getColumnIndex();
                             }
-                        }
-                    }
-                    continue;
-                }
 
-                if (inTable && designationColIndex != -1 && qteColIndex != -1) {
-                    org.apache.poi.ss.usermodel.Cell desigCell = row.getCell(designationColIndex);
-                    org.apache.poi.ss.usermodel.Cell qteCell = row.getCell(qteColIndex);
-
-                    String designation = "";
-                    if (desigCell != null) {
-                        if (desigCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
-                            designation = desigCell.getStringCellValue().trim();
-                        }
-                    }
-
-                    if (designation.toUpperCase().contains("TOTAL")
-                            || designation.toUpperCase().contains("ARRETE LE PRESENT")) {
-                        break;
-                    }
-                    if (designation.isEmpty()) {
-                        continue;
-                    }
-
-                    int quantity = 0;
-                    if (qteCell != null) {
-                        if (qteCell.getCellType() == org.apache.poi.ss.usermodel.CellType.NUMERIC) {
-                            quantity = (int) qteCell.getNumericCellValue();
-                        } else if (qteCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
-                            try {
-                                quantity = Integer.parseInt(qteCell.getStringCellValue().trim());
-                            } catch (Exception e) {
+                            if (designationColIndex != -1 && qteColIndex != -1) {
+                                inTable = true;
+                                // skip processing cells for this header row
+                                break;
                             }
                         }
                     }
+                }
 
-                    if (quantity > 0) {
-                        boolean needsInventoryNumber = "MATERIEL".equals(type);
-                        items.add(new ParsedArticleItem(designation, quantity, needsInventoryNumber));
-                    }
+                // ⛔ Skip rows until table starts (including the header row itself)
+                if (!inTable || (designationColIndex != -1 && row.getRowNum() == sheet.getRow(row.getRowNum()).getRowNum() && isHeaderRow(row, designationColIndex))) continue;
+
+                // ========================
+                // 📦 Parse ITEMS
+                // ========================
+                Cell desigCell = row.getCell(designationColIndex);
+                Cell qteCell = row.getCell(qteColIndex);
+
+                String designation = getStringCellValue(desigCell);
+
+                if (designation == null || designation.isEmpty()) continue;
+
+                String upper = designation.toUpperCase();
+
+                // Stop conditions
+                if (upper.contains("TOTAL") || upper.contains("ARRETE LE PRESENT")) break;
+
+                int quantity = getNumericCellValue(qteCell);
+
+                if (quantity > 0) {
+                    boolean needsInventoryNumber = "MATERIEL".equalsIgnoreCase(type);
+                    items.add(new ParsedArticleItem(designation, quantity, needsInventoryNumber));
                 }
             }
         }
 
         if (items.isEmpty()) {
-            throw new Exception(
-                    "L'importation a échoué : Impossible de trouver les colonnes QTE et DESIGNATION, ou les lignes sont vides.");
+            throw new Exception("Aucune ligne valide trouvée.");
         }
 
-        return items;
+        return ParsedBonCommande.builder()
+                .numero(numero)
+                .fournisseur(fournisseur)
+                .items(items)
+                .build();
+    }
+    private String extractNumeroBC(Row row) {
+        for (Cell cell : row) {
+            if (cell.getCellType() == CellType.STRING) {
+                String text = cell.getStringCellValue().trim().toUpperCase();
+
+                if (text.contains("BON DE COMMANDE") || text.contains("BC")) {
+
+                    // Case 1: "BON DE COMMANDE N°2"
+                    String digits = text.replaceAll("[^0-9]", "");
+                    if (!digits.isEmpty()) {
+                        return digits;
+                    }
+
+                    // Case 2: value in next cells
+                    String next = getNextNonEmptyCell(row, cell.getColumnIndex());
+                    if (next != null) return next;
+                }
+            }
+        }
+        return null;
     }
 
-    public void saveBonCommande(String numeroBC, String serviceDemandeur, String type, List<ParsedArticleItem> items) throws Exception {
+    private String extractFournisseur(Row row) {
+        for (Cell cell : row) {
+            if (cell.getCellType() == CellType.STRING) {
+
+                String raw = cell.getStringCellValue().trim();
+                String upper = raw.toUpperCase();
+
+                if (upper.contains("FOURNISSEUR")) {
+
+                    // Case 1: "Fournisseur : SMART LEVEL"
+                    if (raw.contains(":")) {
+                        String[] parts = raw.split(":");
+                        if (parts.length > 1 && !parts[1].trim().isEmpty()) {
+                            return parts[1].trim();
+                        }
+                    }
+
+                    // Case 2: value in next cells
+                    String next = getNextNonEmptyCell(row, cell.getColumnIndex());
+                    if (next != null) return next;
+                }
+            }
+        }
+        return null;
+    }
+    private String getNextNonEmptyCell(Row row, int startIndex) {
+        for (int i = startIndex + 1; i < startIndex + 6; i++) {
+            Cell cell = row.getCell(i);
+            if (cell != null) {
+                String val = cell.toString().trim();
+                if (!val.isEmpty()) {
+                    return val;
+                }
+            }
+        }
+        return null;
+    }
+    private boolean isHeaderRow(Row row, int designationColIndex) {
+        Cell cell = row.getCell(designationColIndex);
+        if (cell == null) return false;
+        String val = cell.toString().toUpperCase();
+        return val.contains("DESIGNATION") || val.contains("DÉSIGNATION");
+    }
+
+    private String getNextCellValue(Row row, int index) {
+        for (int i = index + 1; i <= index + 3; i++) {
+            Cell cell = row.getCell(i);
+            if (cell != null) {
+                String val = cell.toString().trim();
+                if (!val.isEmpty()) return val;
+            }
+        }
+        return null;
+    }
+
+    private String getStringCellValue(Cell cell) {
+        if (cell == null) return null;
+
+        return switch (cell.getCellType()) {
+            case STRING -> cell.getStringCellValue().trim();
+            case NUMERIC -> String.valueOf((int) cell.getNumericCellValue());
+            default -> null;
+        };
+    }
+
+    private int getNumericCellValue(Cell cell) {
+        if (cell == null) return 0;
+
+        switch (cell.getCellType()) {
+            case NUMERIC:
+                return (int) cell.getNumericCellValue();
+            case STRING:
+                try {
+                    return Integer.parseInt(cell.getStringCellValue().trim());
+                } catch (Exception e) {
+                    return 0;
+                }
+            default:
+                return 0;
+        }
+    }
+    public void saveBonCommande(ParsedBonCommande data, String type) throws Exception {
+
+        if (data == null || data.getItems() == null || data.getItems().isEmpty()) {
+            throw new Exception("Aucune donnée à enregistrer.");
+        }
+
+        String numeroBC = data.getNumero();
+        String serviceDemandeur = data.getServiceDemandeur();
+        String fournisseur = data.getFournisseur();
+        List<ParsedArticleItem> items = data.getItems();
+
         BonCommande bc = BonCommande.builder()
                 .numero(numeroBC)
                 .dateBC(LocalDate.now().toString())
                 .serviceDemandeur(serviceDemandeur)
+                .fournisseur(fournisseur)
                 .statut("Reçu")
                 .lignes(new ArrayList<>())
                 .build();
 
         for (ParsedArticleItem item : items) {
+
             String ref = "REF-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1000);
 
             List<String> invNumbers = new ArrayList<>();
+
             if (item.isNeedsInventoryNumber() && item.getQuantity() > 0) {
                 SequenceDao sequenceDao = new SequenceDao();
+
                 for (int i = 0; i < item.getQuantity(); i++) {
                     invNumbers.add(sequenceDao.getNextInventoryNumber());
                 }
-                
-                // No labels in importation phase anymore
-                // new JasperReportService().generateLabelsForImportAsync(invNumbers, item.getDesignation());
             }
 
             Article article = Article.builder()
                     .reference(ref)
                     .name(item.getDesignation())
-                    .quantityInStock(0) // Start with 0
+                    .quantityInStock(0)
                     .quantityDamaged(0)
                     .totalReceived(item.getQuantity())
                     .type(type)
@@ -133,15 +280,15 @@ public class BonCommandeService {
                     .build();
 
             articleDao.save(article);
-            
-            // Record IN movement
+
+            // 🔹 Movement (use fournisseur if available)
             new MovementService().recordMovement(
-                ma.estf.magasiner.models.entity.MovementType.IN, 
-                article.getId(), 
-                item.getQuantity(), 
-                "FOURNISSEUR", 
-                "STOCK", 
-                numeroBC
+                    ma.estf.magasiner.models.entity.MovementType.IN,
+                    article.getId(),
+                    item.getQuantity(),
+                    fournisseur != null ? fournisseur : "FOURNISSEUR",
+                    "STOCK",
+                    numeroBC
             );
 
             LigneBonCommande ligne = LigneBonCommande.builder()

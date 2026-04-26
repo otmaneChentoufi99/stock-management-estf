@@ -21,6 +21,7 @@ public class BonCommande {
     
     private String dateBC;
     private String serviceDemandeur;
+    private String fournisseur;
     private String statut;
 
     @OneToMany(mappedBy = "bonCommande", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
