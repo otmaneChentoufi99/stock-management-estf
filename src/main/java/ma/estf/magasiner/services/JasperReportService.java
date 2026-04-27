@@ -146,20 +146,9 @@ public class JasperReportService {
             parameters.put("designation", item.getArticle().getName());
             parameters.put("date", dateStr);
             String yearStr = String.valueOf(affectation.getDate().getYear()).substring(2);
-            parameters.put("year", yearStr); 
-            
-            // Extract BC and Fournisseur from the article's first BC line
-            String bcNumero = "-";
-            String fournisseur = "-";
-            if (item.getArticle().getLignesBonCommande() != null && !item.getArticle().getLignesBonCommande().isEmpty()) {
-                BonCommande bc = item.getArticle().getLignesBonCommande().get(0).getBonCommande();
-                if (bc != null) {
-                    bcNumero = bc.getNumero();
-                    fournisseur = bc.getFournisseur();
-                }
-            }
-            parameters.put("bc", bcNumero);
-            parameters.put("fournisseur", fournisseur);
+            parameters.put("year", yearStr);
+            parameters.put("bc", item.getBcNumero() != null ? item.getBcNumero() : "-");
+            parameters.put("fournisseur", item.getFournisseur() != null ? item.getFournisseur() : "-");
             
             // Extract Department for Affectation
             String affectationName = affectation.getDepartment() != null ? affectation.getDepartment().getName() : "";

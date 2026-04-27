@@ -1,7 +1,6 @@
 package ma.estf.magasiner.services;
 
 import ma.estf.magasiner.dao.AffectationDao;
-import ma.estf.magasiner.dao.ArticleDao;
 import ma.estf.magasiner.dao.DepartmentDao;
 import ma.estf.magasiner.dao.HibernateUtil;
 import ma.estf.magasiner.models.dto.AffectationDto;
@@ -10,6 +9,8 @@ import ma.estf.magasiner.models.entity.Affectation;
 import ma.estf.magasiner.models.entity.AffectationItem;
 import ma.estf.magasiner.models.entity.Article;
 import ma.estf.magasiner.models.entity.Department;
+import ma.estf.magasiner.models.entity.BonCommande;
+import ma.estf.magasiner.models.entity.LigneBonCommande;
 import ma.estf.magasiner.models.mapper.AffectationMapper;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -61,6 +62,16 @@ public class AffectationService {
                     target,
                     "AFFECTATION-" + affectation.getId()
                 );
+                
+                String bcNumVal = "-";
+                String fournisseurVal = "-";
+                if (article.getLignesBonCommande() != null && !article.getLignesBonCommande().isEmpty()) {
+                    LigneBonCommande lbc = article.getLignesBonCommande().get(0);
+                    if (lbc.getBonCommande() != null) {
+                        bcNumVal = lbc.getBonCommande().getNumero();
+                        fournisseurVal = lbc.getBonCommande().getFournisseur();
+                    }
+                }
 
                 if (isMaterial && itemDto.getQuantity() > 1) {
                     for (int i = 0; i < itemDto.getQuantity(); i++) {
@@ -74,6 +85,8 @@ public class AffectationService {
                                 .quantity(1)
                                 .inventoryNumber(invNum)
                                 .condition("GOOD")
+                                .bcNumero(bcNumVal)
+                                .fournisseur(fournisseurVal)
                                 .build();
                         affectation.getItems().add(item);
                     }
@@ -88,6 +101,8 @@ public class AffectationService {
                             .quantity(itemDto.getQuantity())
                             .inventoryNumber(invNum)
                             .condition("GOOD")
+                            .bcNumero(bcNumVal)
+                            .fournisseur(fournisseurVal)
                             .build();
     
                     affectation.getItems().add(item);
@@ -114,8 +129,6 @@ public class AffectationService {
                 .map(AffectationMapper::toDto)
                 .collect(Collectors.toList());
     }
-
-
 
     private java.io.File generateInvoice(Affectation affectation, boolean isMaterial) throws Exception {
         String filename = "bon_affectation_" + affectation.getId() + ".pdf";

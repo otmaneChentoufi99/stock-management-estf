@@ -31,4 +31,10 @@ public class AffectationItem {
     @Builder.Default
     @Column(nullable = false)
     private String condition = "GOOD"; // GOOD, DAMAGED, BROKEN
+
+    @Column(nullable = true)
+    private String bcNumero;
+
+    @Column(nullable = true)
+    private String fournisseur;
 }
