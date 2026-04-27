@@ -7,6 +7,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import ma.estf.magasiner.models.entity.Affectation;
 import ma.estf.magasiner.models.entity.AffectationItem;
 import ma.estf.magasiner.models.entity.Article;
+import ma.estf.magasiner.models.entity.BonCommande;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
@@ -144,11 +145,30 @@ public class JasperReportService {
             parameters.put("inventoryNumber", item.getInventoryNumber());
             parameters.put("designation", item.getArticle().getName());
             parameters.put("date", dateStr);
+            String yearStr = String.valueOf(affectation.getDate().getYear()).substring(2);
+            parameters.put("year", yearStr); 
             
+            // Extract BC and Fournisseur from the article's first BC line
+            String bcNumero = "-";
+            String fournisseur = "-";
+            if (item.getArticle().getLignesBonCommande() != null && !item.getArticle().getLignesBonCommande().isEmpty()) {
+                BonCommande bc = item.getArticle().getLignesBonCommande().get(0).getBonCommande();
+                if (bc != null) {
+                    bcNumero = bc.getNumero();
+                    fournisseur = bc.getFournisseur();
+                }
+            }
+            parameters.put("bc", bcNumero);
+            parameters.put("fournisseur", fournisseur);
+            
+            // Extract Department for Affectation
+            String affectationName = affectation.getDepartment() != null ? affectation.getDepartment().getName() : "";
+            parameters.put("affectation", affectationName);
+
             // Generate QR Code
-            String qrContent = "Inv: " + item.getInventoryNumber() + " | Art: " + item.getArticle().getName();
-            InputStream qrStream = generateQRCodeImage(qrContent, 100, 100);
-            parameters.put("qrCodeImage", qrStream);
+            //  String qrContent = "Inv: " + item.getInventoryNumber() + " | Art: " + item.getArticle().getName();
+            //  InputStream qrStream = generateQRCodeImage(qrContent, 100, 100);
+            //  parameters.put("qrCodeImage", qrStream);
 
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, new JREmptyDataSource());
             
@@ -174,60 +194,6 @@ public class JasperReportService {
                 }
             }
         }
-    }
-
-    public void generateLabelsForImportAsync(List<String> inventoryNumbers, String designation) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                InputStream reportStream = getClass().getResourceAsStream("/ma/estf/magasiner/reports/label.jrxml");
-                if (reportStream == null) {
-                    throw new Exception("Label report template not found.");
-                }
-                JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
-
-                String dateStr = java.time.LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                
-                int labelCount = 0;
-                net.sf.jasperreports.engine.JasperPrint mainPrint = null;
-                
-                for (String inv : inventoryNumbers) {
-                    if (inv == null || inv.isEmpty()) continue;
-
-                    Map<String, Object> parameters = new HashMap<>();
-                    parameters.put("inventoryNumber", inv);
-                    parameters.put("designation", designation);
-                    parameters.put("date", dateStr);
-
-                    JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, new JREmptyDataSource());
-                    
-                    if (mainPrint == null) {
-                        mainPrint = jasperPrint;
-                    } else {
-                        mainPrint.addPage(jasperPrint.getPages().get(0));
-                    }
-                    labelCount++;
-                }
-                
-                if (mainPrint != null) {
-                    String labelFilename = "labels_import_" + System.currentTimeMillis() + ".pdf";
-                    JasperExportManager.exportReportToPdfFile(mainPrint, labelFilename);
-                    System.out.println("Generated " + labelCount + " import labels into file: " + labelFilename);
-                    
-                    // Open the PDF
-                    java.io.File pdfFile = new java.io.File(labelFilename);
-                    if (pdfFile.exists() && java.awt.Desktop.isDesktopSupported()) {
-                        try {
-                            java.awt.Desktop.getDesktop().open(pdfFile);
-                        } catch (Exception ex) {
-                            System.err.println("Could not open labels PDF: " + ex.getMessage());
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("Error generating import labels: " + e.getMessage());
-                e.printStackTrace();
-            }
-        });
     }
 
     private InputStream generateQRCodeImage(String text, int width, int height) throws Exception {
