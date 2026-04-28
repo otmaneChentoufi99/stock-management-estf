@@ -71,12 +71,25 @@ public class JasperReportService {
         JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
 
         Map<String, Object> parameters = new HashMap<>();
+        parameters.put(
+                "LOGO_PATH",
+                getClass()
+                        .getResource("/ma/estf/magasiner/images/estf-icon.png")
+                        .toString()
+        );
         parameters.put("affectationId", affectation.getId());
         parameters.put("date", affectation.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         parameters.put("department", affectation.getDepartment() != null ? affectation.getDepartment().getName() : "");
         parameters.put("beneficiary", affectation.getEmployeeName());
         parameters.put("category", affectation.getCategory());
         parameters.put("isMaterial", isMaterial);
+
+        String allFournisseurs = affectation.getItems().stream()
+                .map(AffectationItem::getFournisseur)
+                .filter(f -> f != null && !f.isEmpty())
+                .distinct()
+                .collect(Collectors.joining(", "));
+        parameters.put("fournisseur", allFournisseurs.isEmpty() ? "-" : allFournisseurs);
 
         List<InvoiceItem> invoiceItems = new ArrayList<>();
         Map<Article, List<AffectationItem>> grouped = affectation.getItems().stream()
@@ -98,17 +111,34 @@ public class JasperReportService {
                     if (invs.size() == 1) {
                         invText = invs.get(0);
                     } else {
-                        invText = invs.get(0) + " à " + invs.get(invs.size() - 1);
+                        invText = "de " + invs.get(0) + " à " + invs.get(invs.size() - 1);
                     }
                 }
             }
             invoiceItems.add(new InvoiceItem(article.getReference(), article.getName(), totalQty, invText));
         }
 
-        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(invoiceItems);
-        parameters.put("itemsDataSource", dataSource);
+        JRDataSource dataSource;
+        if (isMaterial) {
+            // Combine all items into one record for a single-page material fiche with clean HTML formatting
+            String allDesignations = invoiceItems.stream()
+                .map(item -> "• <b>" + item.getDesignation() + "</b> : <i>" + item.getInventoryNumbers() + "</i>")
+                .collect(Collectors.joining("<br/>"));
+            String allRefs = invoiceItems.stream().map(InvoiceItem::getReference).collect(Collectors.joining(", "));
+            int totalQty = invoiceItems.stream().mapToInt(InvoiceItem::getQuantity).sum();
+            String allInvs = invoiceItems.stream().map(InvoiceItem::getInventoryNumbers).filter(s -> !"-".equals(s)).collect(Collectors.joining(", "));
+            if (allInvs.isEmpty()) allInvs = "-";
 
-        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, new JREmptyDataSource());
+            InvoiceItem summary = new InvoiceItem(allRefs, allDesignations, totalQty, allInvs);
+            dataSource = new JRBeanCollectionDataSource(Collections.singletonList(summary));
+        } else {
+            // For consumables, use an empty data source because the table uses itemsDataSource parameter
+            dataSource = new JREmptyDataSource();
+        }
+
+        parameters.put("itemsDataSource", new JRBeanCollectionDataSource(invoiceItems));
+
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
         
         String filename = "bon_affectation_" + affectation.getId() + ".pdf";
         File pdfFile = new File(filename);
