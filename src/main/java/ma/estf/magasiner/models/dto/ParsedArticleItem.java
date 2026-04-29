@@ -1,9 +1,6 @@
 package ma.estf.magasiner.models.dto;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import lombok.Getter;
 import lombok.Setter;
 import ma.estf.magasiner.models.dto.CategoryDto;
@@ -15,12 +12,40 @@ public class ParsedArticleItem {
     private int quantity;
     private BooleanProperty needsInventoryNumber;
     private ObjectProperty<CategoryDto> category;
+    private StringProperty caracteristique;
+    private DoubleProperty prixUnit;
 
     public ParsedArticleItem(String designation, int quantity, boolean needsInventoryNumber) {
         this.designation = designation;
         this.quantity = quantity;
         this.needsInventoryNumber = new SimpleBooleanProperty(needsInventoryNumber);
         this.category = new SimpleObjectProperty<>();
+        this.caracteristique = new SimpleStringProperty("");
+        this.prixUnit = new SimpleDoubleProperty(0.0);
+    }
+
+    public Double getPrixUnit() {
+        return prixUnit.get();
+    }
+
+    public void setPrixUnit(Double value) {
+        prixUnit.set(value);
+    }
+
+    public DoubleProperty prixUnitProperty() {
+        return prixUnit;
+    }
+
+    public String getCaracteristique() {
+        return caracteristique.get();
+    }
+
+    public void setCaracteristique(String value) {
+        caracteristique.set(value);
+    }
+
+    public StringProperty caracteristiqueProperty() {
+        return caracteristique;
     }
 
     public boolean isNeedsInventoryNumber() {

@@ -7,6 +7,10 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.KeyCode;
+import javafx.util.converter.DefaultStringConverter;
+import javafx.util.converter.DoubleStringConverter;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import ma.estf.magasiner.models.dto.CategoryDto;
@@ -33,6 +37,8 @@ public class ImportCSVController {
     @FXML private TableColumn<ParsedArticleItem, Integer> colQuantity;
     @FXML private TableColumn<ParsedArticleItem, Boolean> colNeedsInvNum;
     @FXML private TableColumn<ParsedArticleItem, CategoryDto> colCategory;
+    @FXML private TableColumn<ParsedArticleItem, String> colCaracteristique;
+    @FXML private TableColumn<ParsedArticleItem, Double> colPrixUnit;
 
     private File selectedFile;
 
@@ -60,6 +66,178 @@ public class ImportCSVController {
                 cellData.getValue().categoryProperty());
 
         colCategory.setCellFactory(ComboBoxTableCell.forTableColumn(categories));
+
+        colCaracteristique.setCellValueFactory(cellData ->
+                cellData.getValue().caracteristiqueProperty());
+
+        // Robust Custom Cell Factory to commit on focus loss without requiring ENTER
+        colCaracteristique.setCellFactory(column -> new TableCell<>() {
+            private TextField textField;
+
+            @Override
+            public void startEdit() {
+                if (!isEmpty()) {
+                    super.startEdit();
+                    createTextField();
+                    setText(null);
+                    setGraphic(textField);
+                    textField.selectAll();
+                    textField.requestFocus();
+                }
+            }
+
+            @Override
+            public void cancelEdit() {
+                super.cancelEdit();
+                setText(getItem());
+                setGraphic(null);
+            }
+
+            @Override
+            public void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    if (isEditing()) {
+                        if (textField != null) {
+                            textField.setText(getString());
+                        }
+                        setText(null);
+                        setGraphic(textField);
+                    } else {
+                        setText(getString());
+                        setGraphic(null);
+                    }
+                }
+            }
+
+            private void createTextField() {
+                textField = new TextField(getString());
+                textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
+                textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                    if (!newVal) {
+                        commitEdit(textField.getText());
+                    }
+                });
+                textField.setOnAction(event -> commitEdit(textField.getText()));
+                textField.setOnKeyPressed(event -> {
+                    if (event.getCode() == KeyCode.ESCAPE) {
+                        cancelEdit();
+                    }
+                });
+            }
+
+            private String getString() {
+                return getItem() == null ? "" : getItem();
+            }
+
+            @Override
+            public void commitEdit(String newValue) {
+                super.commitEdit(newValue);
+                if (getTableRow() != null && getTableRow().getItem() != null) {
+                    getTableRow().getItem().setCaracteristique(newValue);
+                }
+            }
+        });
+
+        colPrixUnit.setCellValueFactory(cellData ->
+                cellData.getValue().prixUnitProperty().asObject());
+
+        // Custom Cell Factory for Price to commit on focus loss
+        colPrixUnit.setCellFactory(column -> new TableCell<>() {
+            private TextField textField;
+            private final DoubleStringConverter converter = new DoubleStringConverter();
+
+            @Override
+            public void startEdit() {
+                if (!isEmpty()) {
+                    super.startEdit();
+                    createTextField();
+                    setText(null);
+                    setGraphic(textField);
+                    textField.selectAll();
+                    textField.requestFocus();
+                }
+            }
+
+            @Override
+            public void cancelEdit() {
+                super.cancelEdit();
+                setText(getItem() == null ? "0.0" : getItem().toString());
+                setGraphic(null);
+            }
+
+            @Override
+            public void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    if (isEditing()) {
+                        if (textField != null) {
+                            textField.setText(item == null ? "0.0" : item.toString());
+                        }
+                        setText(null);
+                        setGraphic(textField);
+                    } else {
+                        setText(item == null ? "0.0" : item.toString());
+                        setGraphic(null);
+                    }
+                }
+            }
+
+            private void createTextField() {
+                textField = new TextField(getItem() == null ? "0.0" : getItem().toString());
+                textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
+                textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                    if (!newVal) {
+                        try {
+                            commitEdit(converter.fromString(textField.getText()));
+                        } catch (Exception e) {
+                            cancelEdit();
+                        }
+                    }
+                });
+                textField.setOnAction(event -> {
+                    try {
+                        commitEdit(converter.fromString(textField.getText()));
+                    } catch (Exception e) {
+                        cancelEdit();
+                    }
+                });
+                textField.setOnKeyPressed(event -> {
+                    if (event.getCode() == KeyCode.ESCAPE) {
+                        cancelEdit();
+                    }
+                });
+            }
+
+            @Override
+            public void commitEdit(Double newValue) {
+                super.commitEdit(newValue);
+                if (getTableRow() != null && getTableRow().getItem() != null) {
+                    getTableRow().getItem().setPrixUnit(newValue);
+                }
+            }
+        });
+
+        // Single click to edit (extended for price)
+        articlesTable.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 1 && !articlesTable.getSelectionModel().isEmpty()) {
+                TablePosition<ParsedArticleItem, ?> pos = articlesTable.getFocusModel().getFocusedCell();
+                if (pos != null) {
+                    int colIndex = pos.getColumn();
+                    if (colIndex == articlesTable.getColumns().indexOf(colCaracteristique)) {
+                        articlesTable.edit(pos.getRow(), colCaracteristique);
+                    } else if (colIndex == articlesTable.getColumns().indexOf(colPrixUnit)) {
+                        articlesTable.edit(pos.getRow(), colPrixUnit);
+                    }
+                }
+            }
+        });
 
         tableContainer.setVisible(false);
         tableContainer.setManaged(false);
@@ -107,7 +285,6 @@ public class ImportCSVController {
                     selectedFile.getAbsolutePath(),
                     type
             );
-
 
             // Load table
             articlesTable.getItems().setAll(parsedData.getItems());

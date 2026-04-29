@@ -29,18 +29,24 @@ public class JasperReportService {
         private String designation;
         private Integer quantity;
         private String inventoryNumbers;
+        private String caracteristique;
+        private Double prixUnit;
 
-        public InvoiceItem(String reference, String designation, Integer quantity, String inventoryNumbers) {
+        public InvoiceItem(String reference, String designation, Integer quantity, String inventoryNumbers, String caracteristique, Double prixUnit) {
             this.reference = reference;
             this.designation = designation;
             this.quantity = quantity;
             this.inventoryNumbers = inventoryNumbers;
+            this.caracteristique = caracteristique;
+            this.prixUnit = prixUnit;
         }
 
         public String getReference() { return reference; }
         public String getDesignation() { return designation; }
         public Integer getQuantity() { return quantity; }
         public String getInventoryNumbers() { return inventoryNumbers; }
+        public String getCaracteristique() { return caracteristique; }
+        public Double getPrixUnit() { return prixUnit; }
     }
 
     public void generateInvoiceAsync(Affectation affectation) {
@@ -115,7 +121,7 @@ public class JasperReportService {
                     }
                 }
             }
-            invoiceItems.add(new InvoiceItem(article.getReference(), article.getName(), totalQty, invText));
+            invoiceItems.add(new InvoiceItem(article.getReference(), article.getName(), totalQty, invText, article.getCaracteristique(), article.getPrixUnit()));
         }
 
         JRDataSource dataSource;
@@ -129,7 +135,13 @@ public class JasperReportService {
             String allInvs = invoiceItems.stream().map(InvoiceItem::getInventoryNumbers).filter(s -> !"-".equals(s)).collect(Collectors.joining(", "));
             if (allInvs.isEmpty()) allInvs = "-";
 
-            InvoiceItem summary = new InvoiceItem(allRefs, allDesignations, totalQty, allInvs);
+            String allCaracteristiques = invoiceItems.stream()
+                .filter(item -> item.getCaracteristique() != null && !item.getCaracteristique().isEmpty())
+                .map(item -> "• <b>" + item.getDesignation() + "</b> (" + (item.getPrixUnit() != null ? String.format("%.2f", item.getPrixUnit()) : "-") + " DH) : " + item.getCaracteristique())
+                .collect(Collectors.joining("<br/>"));
+            if (allCaracteristiques.isEmpty()) allCaracteristiques = "-";
+
+            InvoiceItem summary = new InvoiceItem(allRefs, allDesignations, totalQty, allInvs, allCaracteristiques, 0.0);
             dataSource = new JRBeanCollectionDataSource(Collections.singletonList(summary));
         } else {
             // For consumables, use an empty data source because the table uses itemsDataSource parameter

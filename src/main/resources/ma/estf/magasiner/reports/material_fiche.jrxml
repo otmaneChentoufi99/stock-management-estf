@@ -39,6 +39,8 @@
     <field name="quantity" class="java.lang.Integer"/>
     <field name="inventoryNumbers" class="java.lang.String"/>
     <field name="reference" class="java.lang.String"/>
+    <field name="caracteristique" class="java.lang.String"/>
+    <field name="prixUnit" class="java.lang.Double"/>
 
     <!-- ================= DETAIL ================= -->
     <detail>
@@ -185,11 +187,13 @@
                 <text><![CDATA[CARACTERISTIQUES]]></text>
             </staticText>
 
-            <staticText>
+            <textField textAdjust="StretchHeight">
                 <reportElement x="45" y="320" width="505" height="135"/>
-                <textElement verticalAlignment="Top"/>
-                <text><![CDATA[]]></text>
-            </staticText>
+                <textElement verticalAlignment="Top" markup="html">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{caracteristique}]]></textFieldExpression>
+            </textField>
             
             <!-- 5. DATE & FOURNISSEUR SECTION -->
             <line>

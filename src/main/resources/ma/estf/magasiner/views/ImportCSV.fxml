@@ -68,6 +68,8 @@
                 <TableColumn fx:id="colQuantity" text="Quantité" prefWidth="100"/>
                 <TableColumn fx:id="colNeedsInvNum" text="N° Inventaire ?" prefWidth="120"/>
                 <TableColumn fx:id="colCategory" text="Catégorie" prefWidth="150"/>
+                <TableColumn fx:id="colCaracteristique" text="Caractéristique" prefWidth="250"/>
+                <TableColumn fx:id="colPrixUnit" text="Prix Unit." prefWidth="100"/>
             </columns>
         </TableView>
 

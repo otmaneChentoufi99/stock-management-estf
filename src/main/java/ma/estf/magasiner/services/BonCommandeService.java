@@ -49,6 +49,7 @@ public class BonCommandeService {
             boolean inTable = false;
             int qteColIndex = -1;
             int designationColIndex = -1;
+            int priceColIndex = -1;
 
             for (Row row : sheet) {
 
@@ -84,14 +85,17 @@ public class BonCommandeService {
                             if (val.contains("QTE") || val.contains("QTÉ")) {
                                 qteColIndex = cell.getColumnIndex();
                             }
-
-                            if (designationColIndex != -1 && qteColIndex != -1) {
-                                inTable = true;
-                                // skip processing cells for this header row
-                                break;
+                            // Check for price column using multiple possible patterns
+                            if (val.contains("PRIX.U HT") ) {
+                                    priceColIndex = cell.getColumnIndex();
                             }
                         }
                     }
+                }
+
+                if (!inTable && designationColIndex != -1 && qteColIndex != -1) {
+                    inTable = true;
+                    continue; // Skip the header row itself
                 }
 
                 // ⛔ Skip rows until table starts (including the header row itself)
@@ -102,6 +106,7 @@ public class BonCommandeService {
                 // ========================
                 Cell desigCell = row.getCell(designationColIndex);
                 Cell qteCell = row.getCell(qteColIndex);
+                Cell priceCell = priceColIndex != -1 ? row.getCell(priceColIndex) : null;
 
                 String designation = getStringCellValue(desigCell);
 
@@ -116,7 +121,11 @@ public class BonCommandeService {
 
                 if (quantity > 0) {
                     boolean needsInventoryNumber = "MATERIEL".equalsIgnoreCase(type);
-                    items.add(new ParsedArticleItem(designation, quantity, needsInventoryNumber));
+                    ParsedArticleItem item = new ParsedArticleItem(designation, quantity, needsInventoryNumber);
+                    if (priceCell != null) {
+                        item.setPrixUnit(getDoubleCellValue(priceCell));
+                    }
+                    items.add(item);
                 }
             }
         }
@@ -218,6 +227,46 @@ public class BonCommandeService {
         };
     }
 
+
+    private double getDoubleCellValue(Cell cell) {
+        if (cell == null) return 0.0;
+        
+        CellType type = cell.getCellType();
+        if (type == CellType.FORMULA) {
+            type = cell.getCachedFormulaResultType();
+        }
+
+        return switch (type) {
+            case NUMERIC -> cell.getNumericCellValue();
+            case STRING -> {
+                try {
+                    // Remove common thousands separators (space, comma in English, apostrophe)
+                    // and convert French decimal comma to dot
+                    String val = cell.getStringCellValue().trim()
+                        .replace(" ", "")
+                        .replace("'", "")
+                        .replace(",", ".");
+                    
+                    // Keep only numbers and the last dot
+                    // If multiple dots, only keep the last one as decimal
+                    int lastDot = val.lastIndexOf('.');
+                    if (lastDot != -1) {
+                        String whole = val.substring(0, lastDot).replaceAll("[^0-9]", "");
+                        String decimal = val.substring(lastDot + 1).replaceAll("[^0-9]", "");
+                        val = whole + "." + decimal;
+                    } else {
+                        val = val.replaceAll("[^0-9]", "");
+                    }
+                    
+                    yield val.isEmpty() ? 0.0 : Double.parseDouble(val);
+                } catch (Exception e) {
+                    yield 0.0;
+                }
+            }
+            default -> 0.0;
+        };
+    }
+
     private int getNumericCellValue(Cell cell) {
         if (cell == null) return 0;
 
@@ -271,6 +320,8 @@ public class BonCommandeService {
             Article article = Article.builder()
                     .reference(ref)
                     .name(item.getDesignation())
+                    .caracteristique(item.getCaracteristique())
+                    .prixUnit(item.getPrixUnit())
                     .quantityInStock(0)
                     .quantityDamaged(0)
                     .totalReceived(item.getQuantity())

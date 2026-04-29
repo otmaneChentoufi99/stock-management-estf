@@ -24,6 +24,8 @@ public class CartConsumableController {
 
     @FXML private TableView<ArticleDto> stockTable;
     @FXML private TableColumn<ArticleDto, String> colStockName;
+    @FXML private TableColumn<ArticleDto, String> colCaracteristique;
+    @FXML private TableColumn<ArticleDto, Double> colPrixUnitaire;
     @FXML private TableColumn<ArticleDto, String> colFournisseurBC;
     @FXML private TableColumn<ArticleDto, String> colStockBC;
     @FXML private TableColumn<ArticleDto, String> colStockDate;
@@ -56,6 +58,8 @@ public class CartConsumableController {
     @FXML
     public void initialize() {
         colStockName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colCaracteristique.setCellValueFactory(new PropertyValueFactory<>("caracteristique"));
+        colPrixUnitaire.setCellValueFactory(new PropertyValueFactory<>("prixUnit"));
         colFournisseurBC.setCellValueFactory(new PropertyValueFactory<>("bonCommandeFournisseur"));
         colStockBC.setCellValueFactory(new PropertyValueFactory<>("bonCommandeNumero"));
         colStockDate.setCellValueFactory(new PropertyValueFactory<>("bonCommandeDate"));

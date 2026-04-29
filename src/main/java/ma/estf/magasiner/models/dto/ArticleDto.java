@@ -10,6 +10,8 @@ public class ArticleDto {
     private Long id;
     private String reference;
     private String name;
+    private String caracteristique;
+    private Double prixUnit;
     private Integer quantityInStock;
     private Integer quantityDamaged;
     private Integer totalReceived;

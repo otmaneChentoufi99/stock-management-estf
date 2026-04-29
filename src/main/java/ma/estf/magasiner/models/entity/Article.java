@@ -21,6 +21,12 @@ public class Article {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = true)
+    private String caracteristique;
+
+    @Column(nullable = true)
+    private Double prixUnit;
+
     @Column(nullable = false)
     private Integer quantityInStock;
 
