@@ -1,14 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.Region?>
+
 
 <VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" 
       fx:controller="ma.estf.magasiner.controllers.AffectationListController"
       style="-fx-padding: 30px; -fx-background-color: white;">
       
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <Label text="Filtrer par catégorie:"/>
-        <ComboBox fx:id="categoryFilter" prefWidth="150" promptText="Tous"/>
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Filtrer par catégorie:"/>
+            <ComboBox fx:id="categoryFilter" prefWidth="150" promptText="Tous"/>
+        </HBox>
+        
+        <Region HBox.hgrow="ALWAYS" />
+        
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Rechercher:"/>
+            <TextField fx:id="searchField" prefWidth="300" promptText="ID, Bénéficiaire, Inventaire, BC..."/>
+        </HBox>
     </HBox>
     
     <TableView fx:id="affectationTable" VBox.vgrow="ALWAYS">

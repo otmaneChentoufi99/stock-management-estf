@@ -8,7 +8,7 @@ import ma.estf.magasiner.models.dto.CategoryDto;
 @Getter
 @Setter
 public class ParsedArticleItem {
-    private String designation;
+    private StringProperty designation;
     private int quantity;
     private BooleanProperty needsInventoryNumber;
     private ObjectProperty<CategoryDto> category;
@@ -16,12 +16,24 @@ public class ParsedArticleItem {
     private DoubleProperty prixUnit;
 
     public ParsedArticleItem(String designation, int quantity, boolean needsInventoryNumber) {
-        this.designation = designation;
+        this.designation = new SimpleStringProperty(designation);
         this.quantity = quantity;
         this.needsInventoryNumber = new SimpleBooleanProperty(needsInventoryNumber);
         this.category = new SimpleObjectProperty<>();
         this.caracteristique = new SimpleStringProperty("");
         this.prixUnit = new SimpleDoubleProperty(0.0);
+    }
+
+    public String getDesignation() {
+        return designation.get();
+    }
+
+    public void setDesignation(String value) {
+        designation.set(value);
+    }
+
+    public StringProperty designationProperty() {
+        return designation;
     }
 
     public Double getPrixUnit() {

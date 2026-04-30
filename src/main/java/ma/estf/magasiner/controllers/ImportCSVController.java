@@ -53,7 +53,79 @@ public class ImportCSVController {
 
         articlesTable.setEditable(true);
 
-        colDesignation.setCellValueFactory(new PropertyValueFactory<>("designation"));
+        colDesignation.setCellValueFactory(cellData -> cellData.getValue().designationProperty());
+        
+        // Custom Cell Factory for Designation to commit on focus loss
+        colDesignation.setCellFactory(column -> new TableCell<>() {
+            private TextField textField;
+
+            @Override
+            public void startEdit() {
+                if (!isEmpty()) {
+                    super.startEdit();
+                    createTextField();
+                    setText(null);
+                    setGraphic(textField);
+                    textField.selectAll();
+                    textField.requestFocus();
+                }
+            }
+
+            @Override
+            public void cancelEdit() {
+                super.cancelEdit();
+                setText(getItem());
+                setGraphic(null);
+            }
+
+            @Override
+            public void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    if (isEditing()) {
+                        if (textField != null) {
+                            textField.setText(getString());
+                        }
+                        setText(null);
+                        setGraphic(textField);
+                    } else {
+                        setText(getString());
+                        setGraphic(null);
+                    }
+                }
+            }
+
+            private void createTextField() {
+                textField = new TextField(getString());
+                textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
+                textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                    if (!newVal) {
+                        commitEdit(textField.getText());
+                    }
+                });
+                textField.setOnAction(event -> commitEdit(textField.getText()));
+                textField.setOnKeyPressed(event -> {
+                    if (event.getCode() == KeyCode.ESCAPE) {
+                        cancelEdit();
+                    }
+                });
+            }
+
+            private String getString() {
+                return getItem() == null ? "" : getItem();
+            }
+
+            @Override
+            public void commitEdit(String newValue) {
+                super.commitEdit(newValue);
+                if (getTableRow() != null && getTableRow().getItem() != null) {
+                    getTableRow().getItem().setDesignation(newValue);
+                }
+            }
+        });
         colQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
 
         colNeedsInvNum.setCellValueFactory(cellData ->
@@ -230,7 +302,9 @@ public class ImportCSVController {
                 TablePosition<ParsedArticleItem, ?> pos = articlesTable.getFocusModel().getFocusedCell();
                 if (pos != null) {
                     int colIndex = pos.getColumn();
-                    if (colIndex == articlesTable.getColumns().indexOf(colCaracteristique)) {
+                    if (colIndex == articlesTable.getColumns().indexOf(colDesignation)) {
+                        articlesTable.edit(pos.getRow(), colDesignation);
+                    } else if (colIndex == articlesTable.getColumns().indexOf(colCaracteristique)) {
                         articlesTable.edit(pos.getRow(), colCaracteristique);
                     } else if (colIndex == articlesTable.getColumns().indexOf(colPrixUnit)) {
                         articlesTable.edit(pos.getRow(), colPrixUnit);
