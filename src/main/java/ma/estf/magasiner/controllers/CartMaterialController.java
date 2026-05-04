@@ -18,6 +18,7 @@ import ma.estf.magasiner.services.CategoryService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CartMaterialController {
@@ -36,6 +37,7 @@ public class CartMaterialController {
     
     @FXML private TextField searchFilterField;
     @FXML private ComboBox<CategoryDto> categoryFilterComboBox;
+    @FXML private ComboBox<CategoryDto> formatFilterComboBox;
 
     @FXML private TableView<AffectationItemDto> cartTable;
     @FXML private TableColumn<AffectationItemDto, String> colCartName;
@@ -70,8 +72,10 @@ public class CartMaterialController {
             java.util.List<String> invs = cellData.getValue().getAvailableInventoryNumbers();
             return new javafx.beans.property.SimpleStringProperty(invs != null ? String.join(", ", invs) : "");
         });
-        colStockCategory.setCellValueFactory(cellData -> 
-            new javafx.beans.property.SimpleStringProperty(cellData.getValue().getCategory() != null ? cellData.getValue().getCategory().getName() : ""));
+        colStockCategory.setCellValueFactory(cellData -> {
+            Set<CategoryDto> cats = cellData.getValue().getCategories();
+            return new javafx.beans.property.SimpleStringProperty(cats != null ? cats.stream().map(CategoryDto::getName).collect(Collectors.joining(", ")) : "");
+        });
 
         colCartName.setCellValueFactory(cellData -> 
             new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArticle().getName()));
@@ -99,11 +103,15 @@ public class CartMaterialController {
         cartTable.setItems(cartItems);
         
         searchFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
-            filterStock(newValue, categoryFilterComboBox.getValue());
+            filterStock(newValue, categoryFilterComboBox.getValue(), formatFilterComboBox.getValue());
         });
 
         categoryFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            filterStock(searchFilterField.getText(), newValue);
+            filterStock(searchFilterField.getText(), newValue, formatFilterComboBox.getValue());
+        });
+
+        formatFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            filterStock(searchFilterField.getText(), categoryFilterComboBox.getValue(), newValue);
         });
 
         refreshData();
@@ -120,14 +128,21 @@ public class CartMaterialController {
             .filter(a -> "MATERIEL".equals(a.getType()))
             .collect(Collectors.toList()));
 
-        List<CategoryDto> categories = categoryService.findAll();
-        List<CategoryDto> comboItems = new ArrayList<>();
-        comboItems.add(CategoryDto.builder().id(-1L).name("All Categories").build());
-        comboItems.addAll(categories);
-        categoryFilterComboBox.setItems(FXCollections.observableArrayList(comboItems));
+        List<CategoryDto> allCats = categoryService.findByType("CATEGORY");
+        List<CategoryDto> catItems = new ArrayList<>();
+        catItems.add(CategoryDto.builder().id(-1L).name("All Categories").build());
+        catItems.addAll(allCats);
+        categoryFilterComboBox.setItems(FXCollections.observableArrayList(catItems));
         categoryFilterComboBox.getSelectionModel().selectFirst();
 
-        filterStock(searchFilterField.getText(), categoryFilterComboBox.getValue());
+        List<CategoryDto> allFormats = categoryService.findByType("FORMAT");
+        List<CategoryDto> formatItems = new ArrayList<>();
+        formatItems.add(CategoryDto.builder().id(-1L).name("All Formats").build());
+        formatItems.addAll(allFormats);
+        formatFilterComboBox.setItems(FXCollections.observableArrayList(formatItems));
+        formatFilterComboBox.getSelectionModel().selectFirst();
+
+        filterStock(searchFilterField.getText(), categoryFilterComboBox.getValue(), formatFilterComboBox.getValue());
         
         departments = deptService.getAllDepartments();
         assigneeDeptComboBox.setItems(FXCollections.observableArrayList(
@@ -135,11 +150,12 @@ public class CartMaterialController {
         ));
     }
 
-    private void filterStock(String filter, CategoryDto category) {
+    private void filterStock(String filter, CategoryDto category, CategoryDto format) {
         boolean noFilter = (filter == null || filter.trim().isEmpty());
         boolean noCategory = (category == null || category.getId() == -1L);
+        boolean noFormat = (format == null || format.getId() == -1L);
 
-        if (noFilter && noCategory) {
+        if (noFilter && noCategory && noFormat) {
             stockTable.setItems(masterStockList);
             return;
         }
@@ -157,10 +173,15 @@ public class CartMaterialController {
 
             boolean matchCategory = noCategory;
             if (!noCategory) {
-                if (article.getCategory() != null && article.getCategory().getId().equals(category.getId())) matchCategory = true;
+                if (article.getCategories() != null && article.getCategories().stream().anyMatch(c -> c.getId().equals(category.getId()))) matchCategory = true;
             }
 
-            return matchText && matchCategory;
+            boolean matchFormat = noFormat;
+            if (!noFormat) {
+                if (article.getCategories() != null && article.getCategories().stream().anyMatch(c -> c.getId().equals(format.getId()))) matchFormat = true;
+            }
+
+            return matchText && matchCategory && matchFormat;
         }).toList();
         stockTable.setItems(FXCollections.observableArrayList(filtered));
     }

@@ -16,9 +16,12 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+    @Column(nullable = false)
+    private String type; // e.g., "CATEGORY", "FORMAT"
+
+    @ManyToMany(mappedBy = "categories")
     private List<Article> articles;
 }

@@ -3,6 +3,8 @@ package ma.estf.magasiner.models.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "articles")
@@ -40,9 +42,14 @@ public class Article {
     @Column(name = "type", nullable = true)
     private String type; // MATERIEL or CONSOMMABLE
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "article_categories",
+        joinColumns = @JoinColumn(name = "article_id"),
+        inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    @Builder.Default
+    private Set<Category> categories = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "article_inventory_numbers", joinColumns = @JoinColumn(name = "article_id"))

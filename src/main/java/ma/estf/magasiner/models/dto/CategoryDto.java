@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class CategoryDto {
     private Long id;
     private String name;
+    private String type;
     
     @Override
     public String toString() {

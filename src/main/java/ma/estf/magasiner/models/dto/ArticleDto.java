@@ -1,6 +1,7 @@
 package ma.estf.magasiner.models.dto;
 
 import lombok.*;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -20,6 +21,6 @@ public class ArticleDto {
     private String bonCommandeNumero;
     private String bonCommandeFournisseur;
     private String bonCommandeDate;
-    private CategoryDto category;
+    private Set<CategoryDto> categories;
     private java.util.List<String> availableInventoryNumbers;
 }

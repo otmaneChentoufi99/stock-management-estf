@@ -14,8 +14,9 @@
             <Label text="Available Material Articles" style="-fx-font-weight: bold;"/>
             
             <HBox spacing="10">
-                <TextField fx:id="searchFilterField" promptText="Search by Name, Service, N° BC or Year..." prefWidth="300"/>
+                <TextField fx:id="searchFilterField" promptText="Search by Name, Service, N° BC or Year..." prefWidth="250"/>
                 <ComboBox fx:id="categoryFilterComboBox" promptText="All Categories" prefWidth="150"/>
+                <ComboBox fx:id="formatFilterComboBox" promptText="All Formats" prefWidth="150"/>
                 <Button text="Add to Cart &gt;&gt;" onAction="#handleAddToCart" style="-fx-base: #3498db; -fx-text-fill: white;"/>
             </HBox>
             

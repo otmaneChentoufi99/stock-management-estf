@@ -12,6 +12,7 @@ public class CategoryMapper {
         return CategoryDto.builder()
                 .id(category.getId())
                 .name(category.getName())
+                .type(category.getType())
                 .build();
     }
 
@@ -20,6 +21,7 @@ public class CategoryMapper {
         return Category.builder()
                 .id(dto.getId())
                 .name(dto.getName())
+                .type(dto.getType())
                 .build();
     }
 

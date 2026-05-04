@@ -10,6 +10,7 @@ import java.util.List;
 
 public class CategoryController {
     @FXML private TextField categoryNameField;
+    @FXML private ComboBox<String> typeComboBox;
     @FXML private ListView<CategoryDto> categoryListView;
     
     private final CategoryService categoryService = new CategoryService();
@@ -17,6 +18,8 @@ public class CategoryController {
 
     @FXML
     public void initialize() {
+        typeComboBox.setItems(FXCollections.observableArrayList("CATEGORY", "FORMAT"));
+        typeComboBox.getSelectionModel().selectFirst();
         refreshData();
     }
 
@@ -28,8 +31,12 @@ public class CategoryController {
     @FXML
     public void handleAddCategory() {
         String name = categoryNameField.getText();
-        if (name != null && !name.trim().isEmpty()) {
-            categoryService.save(CategoryDto.builder().name(name).build());
+        String type = typeComboBox.getValue();
+        if (name != null && !name.trim().isEmpty() && type != null) {
+            categoryService.save(CategoryDto.builder()
+                    .name(name)
+                    .type(type)
+                    .build());
             categoryNameField.clear();
             refreshData();
         }

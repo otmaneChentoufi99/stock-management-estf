@@ -2,6 +2,8 @@ package ma.estf.magasiner.models.mapper;
 
 import ma.estf.magasiner.models.entity.Article;
 import ma.estf.magasiner.models.dto.ArticleDto;
+import java.util.stream.Collectors;
+import java.util.HashSet;
 
 public class ArticleMapper {
     public static ArticleDto toDto(Article entity) {
@@ -33,7 +35,7 @@ public class ArticleMapper {
                 .bonCommandeNumero(bcNum)
                 .bonCommandeFournisseur(bcFournisseur)
                 .bonCommandeDate(bcDate)
-                .category(CategoryMapper.toDto(entity.getCategory()))
+                .categories(entity.getCategories() != null ? entity.getCategories().stream().map(CategoryMapper::toDto).collect(Collectors.toSet()) : new HashSet<>())
                 .availableInventoryNumbers(entity.getAvailableInventoryNumbers() != null ? new java.util.ArrayList<>(entity.getAvailableInventoryNumbers()) : new java.util.ArrayList<>())
                 .build();
     }
@@ -50,7 +52,7 @@ public class ArticleMapper {
                 .quantityDamaged(dto.getQuantityDamaged())
                 .totalReceived(dto.getTotalReceived() == null ? 0 : dto.getTotalReceived())
                 .type(dto.getType())
-                .category(CategoryMapper.toEntity(dto.getCategory()))
+                .categories(dto.getCategories() != null ? dto.getCategories().stream().map(CategoryMapper::toEntity).collect(Collectors.toSet()) : new HashSet<>())
                 .availableInventoryNumbers(dto.getAvailableInventoryNumbers() != null ? new java.util.ArrayList<>(dto.getAvailableInventoryNumbers()) : new java.util.ArrayList<>())
                 .build();
     }

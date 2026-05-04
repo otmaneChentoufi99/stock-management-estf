@@ -19,6 +19,10 @@ public class CategoryService {
         return CategoryMapper.toDtoList(categoryDao.findAll());
     }
 
+    public List<CategoryDto> findByType(String type) {
+        return CategoryMapper.toDtoList(categoryDao.findByType(type));
+    }
+
     public CategoryDto save(CategoryDto categoryDto) {
         Category category = CategoryMapper.toEntity(categoryDto);
         categoryDao.save(category);

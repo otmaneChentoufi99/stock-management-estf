@@ -37,6 +37,7 @@ public class ImportCSVController {
     @FXML private TableColumn<ParsedArticleItem, Integer> colQuantity;
     @FXML private TableColumn<ParsedArticleItem, Boolean> colNeedsInvNum;
     @FXML private TableColumn<ParsedArticleItem, CategoryDto> colCategory;
+    @FXML private TableColumn<ParsedArticleItem, CategoryDto> colFormat;
     @FXML private TableColumn<ParsedArticleItem, String> colCaracteristique;
     @FXML private TableColumn<ParsedArticleItem, Double> colPrixUnit;
 
@@ -46,7 +47,8 @@ public class ImportCSVController {
     private final CategoryService categoryService = new CategoryService();
 
     private ParsedBonCommande parsedData;
-    private ObservableList<CategoryDto> categories;
+    private ObservableList<CategoryDto> categoriesOnly;
+    private ObservableList<CategoryDto> formatsOnly;
 
     @FXML
     public void initialize() {
@@ -132,12 +134,16 @@ public class ImportCSVController {
                 cellData.getValue().needsInventoryNumberProperty());
         colNeedsInvNum.setCellFactory(CheckBoxTableCell.forTableColumn(colNeedsInvNum));
 
-        categories = FXCollections.observableArrayList(categoryService.findAll());
+        categoriesOnly = FXCollections.observableArrayList(categoryService.findByType("CATEGORY"));
+        formatsOnly = FXCollections.observableArrayList(categoryService.findByType("FORMAT"));
 
         colCategory.setCellValueFactory(cellData ->
                 cellData.getValue().categoryProperty());
+        colCategory.setCellFactory(ComboBoxTableCell.forTableColumn(categoriesOnly));
 
-        colCategory.setCellFactory(ComboBoxTableCell.forTableColumn(categories));
+        colFormat.setCellValueFactory(cellData ->
+                cellData.getValue().formatProperty());
+        colFormat.setCellFactory(ComboBoxTableCell.forTableColumn(formatsOnly));
 
         colCaracteristique.setCellValueFactory(cellData ->
                 cellData.getValue().caracteristiqueProperty());
