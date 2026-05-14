@@ -27,7 +27,10 @@ public class DashboardController {
     public void initialize() {
         colRef.setCellValueFactory(new PropertyValueFactory<>("reference"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colType.setCellValueFactory(new PropertyValueFactory<>("type"));
+        colType.setCellValueFactory(cellData -> {
+            List<String> invs = cellData.getValue().getAvailableInventoryNumbers();
+            return new javafx.beans.property.SimpleStringProperty((invs != null && !invs.isEmpty()) ? "MATERIEL" : "CONSOMMABLE");
+        });
         colAvailable.setCellValueFactory(new PropertyValueFactory<>("quantityInStock"));
         colDamaged.setCellValueFactory(new PropertyValueFactory<>("quantityDamaged"));
 

@@ -17,4 +17,25 @@
             <TableColumn fx:id="colAction" text="Actions" prefWidth="150"/>
         </columns>
     </TableView>
+
+    <VBox fx:id="detailsContainer" spacing="10" visible="false" managed="false">
+        <Separator/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+             <Label text="Détails du Bon de Commande" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+             <Region HBox.hgrow="ALWAYS"/>
+             <Button text="Enregistrer les modifications" onAction="#handleSaveDetails" style="-fx-base: #2ecc71; -fx-text-fill: white;"/>
+        </HBox>
+        <TableView fx:id="detailsTable" VBox.vgrow="ALWAYS" editable="true">
+            <columns>
+                <TableColumn fx:id="colItemDesignation" text="Désignation" prefWidth="200"/>
+                <TableColumn fx:id="colItemCaracteristique" text="Caractéristique" prefWidth="150"/>
+                <TableColumn fx:id="colItemQty" text="Quantité" prefWidth="70"/>
+                <TableColumn fx:id="colItemPrice" text="Prix Unit." prefWidth="80"/>
+                <TableColumn fx:id="colItemInvCheck" text="Inventaire ?" prefWidth="90"/>
+                <TableColumn fx:id="colItemInvNumbers" text="N° Inventaire" prefWidth="150"/>
+                <TableColumn fx:id="colItemCategory" text="Catégorie" prefWidth="120"/>
+                <TableColumn fx:id="colItemFormat" text="Format" prefWidth="120"/>
+            </columns>
+        </TableView>
+    </VBox>
 </VBox>

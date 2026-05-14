@@ -123,9 +123,9 @@ public class CartMaterialController {
 
     private void refreshData() {
         List<ArticleDto> allArticles = articleService.getAllArticles();
-        // Keep ONLY MATERIEL types
+        // Keep ONLY MATERIEL (articles with inventory numbers)
         masterStockList.setAll(allArticles.stream()
-            .filter(a -> "MATERIEL".equals(a.getType()))
+            .filter(a -> a.getAvailableInventoryNumbers() != null && !a.getAvailableInventoryNumbers().isEmpty())
             .collect(Collectors.toList()));
 
         List<CategoryDto> allCats = categoryService.findByType("CATEGORY");

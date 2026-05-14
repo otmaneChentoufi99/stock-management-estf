@@ -17,23 +17,9 @@
     <Label text="Import Bon de Commande (Excel)"
            style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
 
-    <!-- ComboBox options -->
-    <fx:define>
-        <FXCollections fx:factory="observableArrayList" fx:id="typeOptions">
-            <String fx:value="MATERIEL"/>
-            <String fx:value="CONSOMMABLE"/>
-        </FXCollections>
-    </fx:define>
 
-    <!-- Type -->
-    <HBox spacing="10">
-        <Label text="Type:"/>
-        <ComboBox fx:id="typeComboBox" prefWidth="250">
-            <items>
-                <fx:reference source="typeOptions"/>
-            </items>
-        </ComboBox>
-    </HBox>
+
+
 
     <!-- File -->
     <HBox spacing="15" alignment="CENTER_LEFT">

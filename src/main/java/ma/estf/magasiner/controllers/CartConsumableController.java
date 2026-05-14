@@ -133,9 +133,9 @@ public class CartConsumableController {
 
     private void refreshData() {
         List<ArticleDto> allArticles = articleService.getAllArticles();
-        // Keep ONLY CONSOMMABLE types
+        // Keep ONLY CONSOMMABLE (articles without inventory numbers)
         masterStockList.setAll(allArticles.stream()
-            .filter(a -> "CONSOMMABLE".equals(a.getType()))
+            .filter(a -> a.getAvailableInventoryNumbers() == null || a.getAvailableInventoryNumbers().isEmpty())
             .collect(Collectors.toList()));
 
         List<CategoryDto> allCats = categoryService.findByType("CATEGORY");

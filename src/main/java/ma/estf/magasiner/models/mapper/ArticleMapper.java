@@ -31,7 +31,7 @@ public class ArticleMapper {
                 .quantityInStock(entity.getQuantityInStock())
                 .quantityDamaged(entity.getQuantityDamaged())
                 .totalReceived(entity.getTotalReceived() == null ? 0 : entity.getTotalReceived())
-                .type(entity.getType())
+
                 .bonCommandeNumero(bcNum)
                 .bonCommandeFournisseur(bcFournisseur)
                 .bonCommandeDate(bcDate)
@@ -51,7 +51,7 @@ public class ArticleMapper {
                 .quantityInStock(dto.getQuantityInStock())
                 .quantityDamaged(dto.getQuantityDamaged())
                 .totalReceived(dto.getTotalReceived() == null ? 0 : dto.getTotalReceived())
-                .type(dto.getType())
+
                 .categories(dto.getCategories() != null ? dto.getCategories().stream().map(CategoryMapper::toEntity).collect(Collectors.toSet()) : new HashSet<>())
                 .availableInventoryNumbers(dto.getAvailableInventoryNumbers() != null ? new java.util.ArrayList<>(dto.getAvailableInventoryNumbers()) : new java.util.ArrayList<>())
                 .build();

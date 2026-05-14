@@ -39,8 +39,7 @@ public class Article {
     @Column(nullable = true)
     private Integer totalReceived;
 
-    @Column(name = "type", nullable = true)
-    private String type; // MATERIEL or CONSOMMABLE
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

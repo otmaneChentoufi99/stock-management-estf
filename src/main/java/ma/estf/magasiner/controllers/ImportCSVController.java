@@ -23,7 +23,7 @@ import java.io.File;
 
 public class ImportCSVController {
 
-    @FXML private ComboBox<String> typeComboBox;
+
     @FXML private Label selectedFileLabel;
     @FXML private Label statusLabel;
 
@@ -332,7 +332,7 @@ public class ImportCSVController {
                 new FileChooser.ExtensionFilter("Excel Files", "*.xlsx")
         );
 
-        selectedFile = fileChooser.showOpenDialog(typeComboBox.getScene().getWindow());
+        selectedFile = fileChooser.showOpenDialog(selectedFileLabel.getScene().getWindow());
 
         if (selectedFile != null) {
             selectedFileLabel.setText(selectedFile.getName());
@@ -353,17 +353,9 @@ public class ImportCSVController {
             return;
         }
 
-        String type = typeComboBox.getValue();
-
-        if (type == null || type.isEmpty()) {
-            setError("Type de Bon Commande is required.");
-            return;
-        }
-
         try {
             parsedData = service.parseExcelBonCommande(
-                    selectedFile.getAbsolutePath(),
-                    type
+                    selectedFile.getAbsolutePath()
             );
 
             // Load table
@@ -388,15 +380,8 @@ public class ImportCSVController {
             return;
         }
 
-        String type = typeComboBox.getValue();
-
-        if (type == null || type.isEmpty()) {
-            setError("Type is required.");
-            return;
-        }
-
         try {
-            service.saveBonCommande(parsedData, type);
+            service.saveBonCommande(parsedData);
 
             setSuccess("Import successful!");
 
@@ -419,7 +404,7 @@ public class ImportCSVController {
         tableContainer.setVisible(false);
         tableContainer.setManaged(false);
 
-        typeComboBox.getSelectionModel().clearSelection();
+
     }
 
     private void setError(String msg) {

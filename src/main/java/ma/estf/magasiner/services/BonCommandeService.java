@@ -34,7 +34,7 @@ public class BonCommandeService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    public ParsedBonCommande parseExcelBonCommande(String filePath, String type) throws Exception {
+    public ParsedBonCommande parseExcelBonCommande(String filePath) throws Exception {
 
         List<ParsedArticleItem> items = new ArrayList<>();
 
@@ -120,7 +120,7 @@ public class BonCommandeService {
                 int quantity = getNumericCellValue(qteCell);
 
                 if (quantity > 0) {
-                    boolean needsInventoryNumber = "MATERIEL".equalsIgnoreCase(type);
+                    boolean needsInventoryNumber = false;
                     ParsedArticleItem item = new ParsedArticleItem(designation, quantity, needsInventoryNumber);
                     if (priceCell != null) {
                         item.setPrixUnit(getDoubleCellValue(priceCell));
@@ -283,7 +283,7 @@ public class BonCommandeService {
                 return 0;
         }
     }
-    public void saveBonCommande(ParsedBonCommande data, String type) throws Exception {
+    public void saveBonCommande(ParsedBonCommande data) throws Exception {
 
         if (data == null || data.getItems() == null || data.getItems().isEmpty()) {
             throw new Exception("Aucune donnée à enregistrer.");
@@ -325,7 +325,7 @@ public class BonCommandeService {
                     .quantityInStock(0)
                     .quantityDamaged(0)
                     .totalReceived(item.getQuantity())
-                    .type(type)
+
                     .categories(item.getAllSelectedCategories().stream()
                             .map(ma.estf.magasiner.models.mapper.CategoryMapper::toEntity)
                             .collect(java.util.stream.Collectors.toSet()))

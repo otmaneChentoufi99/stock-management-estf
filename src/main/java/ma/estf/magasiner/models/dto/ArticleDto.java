@@ -16,7 +16,7 @@ public class ArticleDto {
     private Integer quantityInStock;
     private Integer quantityDamaged;
     private Integer totalReceived;
-    private String type;
+
     
     private String bonCommandeNumero;
     private String bonCommandeFournisseur;

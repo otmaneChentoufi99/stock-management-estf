@@ -17,4 +17,8 @@ public class ArticleService {
         dao.save(ArticleMapper.toEntity(dto));
     }
 
+    public void updateArticle(ArticleDto dto) {
+        dao.update(ArticleMapper.toEntity(dto));
+    }
+
 }
