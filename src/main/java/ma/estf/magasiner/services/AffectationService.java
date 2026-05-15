@@ -286,6 +286,8 @@ public class AffectationService {
                     .quantity(qty)
                     .inventoryNumber(sourceItem.getInventoryNumber())
                     .condition(sourceItem.getCondition())
+                    .bcNumero(sourceItem.getBcNumero())
+                    .fournisseur(sourceItem.getFournisseur())
                     .build();
                 target.getItems().add(targetItem);
                 
@@ -304,7 +306,12 @@ public class AffectationService {
             session.persist(target);
             tx.commit();
             
-            return generateInvoice(target, "MATERIEL".equals(target.getCategory()));
+            if ("MATERIEL".equals(target.getCategory())) {
+                new JasperReportService().generateTransformationReport(target, source.getEmployeeName());
+                return null; // The file is opened by JasperReportService
+            } else {
+                return generateInvoice(target, false);
+            }
         } catch (Exception e) {
             if (tx != null) tx.rollback();
             throw e;

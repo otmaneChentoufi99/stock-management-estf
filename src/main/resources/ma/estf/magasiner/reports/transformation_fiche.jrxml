@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport
+        xmlns="http://jasperreports.sourceforge.net/jasperreports"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://jasperreports.sourceforge.net/jasperreports
+        http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+        name="TransformationFiche"
+        pageWidth="595"
+        pageHeight="842"
+        columnWidth="595"
+        leftMargin="0"
+        rightMargin="0"
+        topMargin="0"
+        bottomMargin="0"
+        uuid="bc123456-1234-1234-1234-123456789012">
+    
+    <style name="Table_CH" mode="Transparent">
+        <box>
+            <pen lineWidth="1.0" lineColor="#000000"/>
+        </box>
+    </style>
+    <style name="Table_TD" mode="Transparent">
+        <box>
+            <pen lineWidth="1.0" lineColor="#000000"/>
+        </box>
+    </style>
+
+    <!-- ================= PARAMETERS ================= -->
+    <parameter name="LOGO_PATH" class="java.lang.String"/>
+    <parameter name="affectationId" class="java.lang.Long"/>
+    <parameter name="date" class="java.lang.String"/>
+    <parameter name="department" class="java.lang.String"/>
+    <parameter name="beneficiary" class="java.lang.String"/>
+    <parameter name="sourceBeneficiary" class="java.lang.String"/>
+    <parameter name="fournisseur" class="java.lang.String"/>
+
+    <!-- ================= FIELDS ================= -->
+    <field name="designation" class="java.lang.String"/>
+    <field name="quantity" class="java.lang.Integer"/>
+    <field name="inventoryNumbers" class="java.lang.String"/>
+    <field name="reference" class="java.lang.String"/>
+    <field name="caracteristique" class="java.lang.String"/>
+    <field name="prixUnit" class="java.lang.Double"/>
+
+    <!-- ================= DETAIL ================= -->
+    <detail>
+        <band height="842">
+
+            <!-- ================= FULL PAGE BACKGROUND ================= -->
+            <rectangle>
+                <reportElement
+                        x="0"
+                        y="0"
+                        width="595"
+                        height="842"
+                        mode="Opaque"
+                        backcolor="#81D8D0"/>
+                <graphicElement>
+                    <pen lineWidth="0"/>
+                </graphicElement>
+            </rectangle>
+
+            <!-- ================= HEADER ================= -->
+
+            <!-- TITLES (LEFT) -->
+            <staticText>
+                <reportElement x="14" y="45" width="445" height="14"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="10" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Royaume du Maroc]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="14" y="60" width="445" height="25"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[Ministère de l'Enseignement Supérieur, de la Recherche Scientifique et de l'Innovation]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="14" y="85" width="445" height="14"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="10"/>
+                </textElement>
+                <text><![CDATA[Université Sidi Mohamed Ben Abdellah]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="14" y="105" width="445" height="20"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="11" isBold="true"/>
+                </textElement>
+                <text><![CDATA[ECOLE SUPERIEURE DE TECHNOLOGIE DE FES]]></text>
+            </staticText>
+
+            <!-- LOGO (RIGHT) -->
+            <image scaleImage="RetainShape">
+                <reportElement x="485" y="40" width="80" height="80"/>
+                <imageExpression><![CDATA[$P{LOGO_PATH}]]></imageExpression>
+            </image>
+
+            <!-- TITLE -->
+            <staticText>
+                <reportElement x="30" y="135" width="535" height="20"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
+                <text><![CDATA[FICHE DE TRANSFORMATION DE MATERIEL]]></text>
+            </staticText>
+
+            <!-- ================= MAIN BOX ================= -->
+            <rectangle>
+                <reportElement x="30" y="160" width="535" height="560"
+                               mode="Transparent"/>
+                <graphicElement>
+                    <pen lineWidth="1.5"/>
+                </graphicElement>
+            </rectangle>
+
+            <!-- 1. INVENTORY SECTION -->
+            <line>
+                <reportElement x="30" y="195" width="535" height="1"/>
+            </line>
+            <line>
+                <reportElement x="297" y="160" width="1" height="35"/>
+            </line>
+
+            <staticText>
+                <reportElement x="40" y="160" width="250" height="35"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[N° D'INVENTAIRE : PRESIDENCE DE L'UNIVERSITE]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="307" y="160" width="130" height="35"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[N° D'INVENTAIRE : EST FES]]></text>
+            </staticText>
+
+            <!-- 2. QUANTITY SECTION -->
+            <line>
+                <reportElement x="30" y="230" width="535" height="1"/>
+            </line>
+
+            <staticText>
+                <reportElement x="40" y="195" width="150" height="35"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[NOMBRE D'OBJET]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="190" y="195" width="100" height="35"/>
+                <textElement verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+            </textField>
+
+            <!-- 3. DESIGNATION & INVENTAIRE SECTION -->
+            <line>
+                <reportElement x="30" y="295" width="535" height="1"/>
+            </line>
+
+            <staticText>
+                <reportElement x="30" y="235" width="535" height="20"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="11" isBold="true"/>
+                </textElement>
+                <text><![CDATA[DESIGNATION / INVENTAIRE]]></text>
+            </staticText>
+
+            <textField textAdjust="StretchHeight">
+                <reportElement x="45" y="255" width="505" height="40"/>
+                <textElement verticalAlignment="Top" markup="html">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{designation}]]></textFieldExpression>
+            </textField>
+            
+            <!-- 4. CARACTERISTIQUES SECTION -->
+            <line>
+                <reportElement x="30" y="455" width="535" height="1"/>
+            </line>
+
+            <staticText>
+                <reportElement x="30" y="300" width="535" height="20"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[CARACTERISTIQUES]]></text>
+            </staticText>
+
+            <textField textAdjust="StretchHeight">
+                <reportElement x="45" y="320" width="505" height="135"/>
+                <textElement verticalAlignment="Top" markup="html">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{caracteristique}]]></textFieldExpression>
+            </textField>
+            
+            <!-- 5. DATE & FOURNISSEUR SECTION -->
+            <line>
+                <reportElement x="30" y="490" width="535" height="1"/>
+            </line>
+            <line>
+                <reportElement x="297" y="455" width="1" height="35"/>
+            </line>
+
+            <staticText>
+                <reportElement x="40" y="455" width="100" height="35"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[DATE D'ENTREE: ]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="140" y="455" width="150" height="35"/>
+                <textElement verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{date}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="307" y="455" width="80" height="35"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[FOURNISSEUR: ]]></text>
+            </staticText>
+
+            <textField textAdjust="ScaleFont">
+                <reportElement x="387" y="455" width="170" height="35"/>
+                <textElement verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{fournisseur}]]></textFieldExpression>
+            </textField>
+
+            <!-- 6. AFFECTATION SECTION -->
+            <line>
+                <reportElement x="30" y="525" width="535" height="1"/>
+            </line>
+
+            <staticText>
+                <reportElement x="40" y="490" width="150" height="35"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[NOUVELLE AFFECTATION: ]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="190" y="490" width="365" height="35"/>
+                <textElement verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{department}]]></textFieldExpression>
+            </textField>
+
+            <!-- 7. SIGNATURES SECTION -->
+            <line>
+                <reportElement x="208" y="525" width="1" height="195"/>
+            </line>
+            <line>
+                <reportElement x="386" y="525" width="1" height="195"/>
+            </line>
+
+            <!-- Column 1: CÉDÉ PAR -->
+            <staticText>
+                <reportElement x="35" y="535" width="170" height="20"/>
+                <textElement textAlignment="Center">
+                    <font isBold="true" isUnderline="true"/>
+                </textElement>
+                <text><![CDATA[CÉDÉ PAR]]></text>
+            </staticText>
+
+            <textField textAdjust="StretchHeight">
+                <reportElement x="35" y="565" width="170" height="20"/>
+                <textElement textAlignment="Center">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["M : " + $P{sourceBeneficiary}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="35" y="590" width="170" height="20"/>
+                <textElement textAlignment="Center">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["LE : " + $P{date}]]></textFieldExpression>
+            </textField>
+
+            <!-- Column 2: PRIS EN CHARGE PAR -->
+            <staticText>
+                <reportElement x="213" y="535" width="170" height="20"/>
+                <textElement textAlignment="Center">
+                    <font isBold="true" isUnderline="true"/>
+                </textElement>
+                <text><![CDATA[PRIS EN CHARGE PAR]]></text>
+            </staticText>
+
+            <textField textAdjust="StretchHeight">
+                <reportElement x="213" y="565" width="170" height="20"/>
+                <textElement textAlignment="Center">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["M : " + $P{beneficiary}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="213" y="590" width="170" height="20"/>
+                <textElement textAlignment="Center">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["LE : " + $P{date}]]></textFieldExpression>
+            </textField>
+
+            <!-- Column 3: EMARGEMENT -->
+            <staticText>
+                <reportElement x="391" y="535" width="170" height="20"/>
+                <textElement textAlignment="Center">
+                    <font isBold="true" isUnderline="true"/>
+                </textElement>
+                <text><![CDATA[EMARGEMENT]]></text>
+            </staticText>
+
+            <!-- ================= OBSERVATIONS ================= -->
+            <staticText>
+                <reportElement x="30" y="735" width="200" height="20"/>
+                <textElement verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[OBSERVATIONS :]]></text>
+            </staticText>
+
+            <rectangle>
+                <reportElement x="30" y="760" width="535" height="40"
+                               mode="Transparent"/>
+                <graphicElement>
+                    <pen lineWidth="1"/>
+                </graphicElement>
+            </rectangle>
+
+        </band>
+    </detail>
+</jasperReport>

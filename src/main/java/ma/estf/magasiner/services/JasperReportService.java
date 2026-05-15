@@ -68,6 +68,17 @@ public class JasperReportService {
         });
     }
 
+    public void generateTransformationReportAsync(Affectation target, String sourceEmployee) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                generateTransformationReport(target, sourceEmployee);
+            } catch (Exception e) {
+                System.err.println("Error generating transformation report: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
+
     private void generateInvoice(Affectation affectation, boolean isMaterial) throws Exception {
         String templatePath = isMaterial ? "/ma/estf/magasiner/reports/material_fiche.jrxml" : "/ma/estf/magasiner/reports/invoice.jrxml";
         InputStream reportStream = getClass().getResourceAsStream(templatePath);
@@ -164,6 +175,94 @@ public class JasperReportService {
                 java.awt.Desktop.getDesktop().open(pdfFile);
             } catch (Exception ex) {
                 // Ignore if it can't open
+            }
+        }
+    }
+
+    public void generateTransformationReport(Affectation target, String sourceEmployee) throws Exception {
+        String templatePath = "/ma/estf/magasiner/reports/transformation_fiche.jrxml";
+        InputStream reportStream = getClass().getResourceAsStream(templatePath);
+        if (reportStream == null) {
+            throw new Exception("Report template not found: " + templatePath);
+        }
+        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(
+                "LOGO_PATH",
+                getClass()
+                        .getResource("/ma/estf/magasiner/images/estf-icon.png")
+                        .toString()
+        );
+        parameters.put("affectationId", target.getId());
+        parameters.put("date", target.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        parameters.put("department", target.getDepartment() != null ? target.getDepartment().getName() : "");
+        parameters.put("beneficiary", target.getEmployeeName());
+        parameters.put("sourceBeneficiary", sourceEmployee);
+
+        String allFournisseurs = target.getItems().stream()
+                .map(AffectationItem::getFournisseur)
+                .filter(f -> f != null && !f.isEmpty())
+                .distinct()
+                .collect(Collectors.joining(", "));
+        parameters.put("fournisseur", allFournisseurs.isEmpty() ? "-" : allFournisseurs);
+
+        List<InvoiceItem> invoiceItems = new ArrayList<>();
+        Map<Article, List<AffectationItem>> grouped = target.getItems().stream()
+                .collect(Collectors.groupingBy(AffectationItem::getArticle, LinkedHashMap::new, Collectors.toList()));
+
+        for (Map.Entry<Article, List<AffectationItem>> entry : grouped.entrySet()) {
+            Article article = entry.getKey();
+            List<AffectationItem> items = entry.getValue();
+            int totalQty = items.stream().mapToInt(AffectationItem::getQuantity).sum();
+
+            List<String> invs = items.stream()
+                    .map(AffectationItem::getInventoryNumber)
+                    .filter(inv -> inv != null && !inv.trim().isEmpty())
+                    .sorted()
+                    .collect(Collectors.toList());
+            String invText = "-";
+            if (!invs.isEmpty()) {
+                if (invs.size() == 1) {
+                    invText = invs.get(0);
+                } else {
+                    invText = "de " + invs.get(0) + " à " + invs.get(invs.size() - 1);
+                }
+            }
+            invoiceItems.add(new InvoiceItem(article.getReference(), article.getName(), totalQty, invText, article.getCaracteristique(), article.getPrixUnit()));
+        }
+
+        // Combine all items into one record for a single-page material fiche
+        String allDesignations = invoiceItems.stream()
+            .map(item -> "• <b>" + item.getDesignation() + "</b> : <i>" + item.getInventoryNumbers() + "</i>")
+            .collect(Collectors.joining("<br/>"));
+        String allRefs = invoiceItems.stream().map(InvoiceItem::getReference).collect(Collectors.joining(", "));
+        int totalQty = invoiceItems.stream().mapToInt(InvoiceItem::getQuantity).sum();
+        String allInvs = invoiceItems.stream().map(InvoiceItem::getInventoryNumbers).filter(s -> !"-".equals(s)).collect(Collectors.joining(", "));
+        if (allInvs.isEmpty()) allInvs = "-";
+
+        String allCaracteristiques = invoiceItems.stream()
+            .filter(item -> item.getCaracteristique() != null && !item.getCaracteristique().isEmpty())
+            .map(item -> "• <b>" + item.getDesignation() + "</b> (" + (item.getPrixUnit() != null ? String.format("%.2f", item.getPrixUnit()) : "-") + " DH) : " + item.getCaracteristique())
+            .collect(Collectors.joining("<br/>"));
+        if (allCaracteristiques.isEmpty()) allCaracteristiques = "-";
+
+        InvoiceItem summary = new InvoiceItem(allRefs, allDesignations, totalQty, allInvs, allCaracteristiques, 0.0);
+        JRDataSource dataSource = new JRBeanCollectionDataSource(Collections.singletonList(summary));
+
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        
+        String filename = "fiche_transformation_" + target.getId() + ".pdf";
+        File pdfFile = new File(filename);
+        JasperExportManager.exportReportToPdfFile(jasperPrint, pdfFile.getAbsolutePath());
+        
+        System.out.println("Transformation report saved to " + pdfFile.getAbsolutePath());
+
+        if (java.awt.Desktop.isDesktopSupported()) {
+            try {
+                java.awt.Desktop.getDesktop().open(pdfFile);
+            } catch (Exception ex) {
+                // Ignore
             }
         }
     }
