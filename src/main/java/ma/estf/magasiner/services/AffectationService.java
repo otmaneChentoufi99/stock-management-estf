@@ -509,4 +509,76 @@ public class AffectationService {
             throw e;
         }
     }
+
+    public void cancelAffectation(Long assignmentId) throws Exception {
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+
+            Affectation affectation = session.get(Affectation.class, assignmentId);
+            if (affectation == null) {
+                throw new Exception("Assignment not found.");
+            }
+
+            if (!"ACTIVE".equals(affectation.getStatus())) {
+                throw new Exception("Only ACTIVE assignments can be canceled.");
+            }
+
+            String targetName = (affectation.getDepartment() != null) ? affectation.getDepartment().getName() : affectation.getEmployeeName();
+
+            for (AffectationItem item : affectation.getItems()) {
+                Article article = item.getArticle();
+                if (article != null && item.getQuantity() > 0) {
+                    // 1. Revert quantity in stock
+                    article.setQuantityInStock(article.getQuantityInStock() + item.getQuantity());
+
+                    // 2. Revert inventory number if applicable
+                    if ("MATERIEL".equals(affectation.getCategory())) {
+                        String invNum = item.getInventoryNumber();
+                        if (invNum != null && !invNum.isEmpty() && !"-".equals(invNum)) {
+                            List<String> invList = article.getAvailableInventoryNumbers();
+                            if (invList == null) {
+                                invList = new ArrayList<>();
+                                article.setAvailableInventoryNumbers(invList);
+                            }
+                            if (!invList.contains(invNum)) {
+                                invList.add(invNum);
+                                Collections.sort(invList);
+                            }
+                        }
+                    }
+
+                    // 3. Record CORRECTION movement
+                    new MovementService().recordMovement(
+                        session,
+                        ma.estf.magasiner.models.entity.MovementType.CORRECTION,
+                        article.getId(),
+                        item.getQuantity(),
+                        targetName,
+                        "STOCK",
+                        "CANCEL-AFFECTATION-" + assignmentId
+                    );
+
+                    session.merge(article);
+                }
+
+                // Zero out the item's active quantity
+                item.setQuantity(0);
+                item.setCondition("CANCELED");
+                session.merge(item);
+            }
+
+            // 4. Set overall assignment status to CANCELED
+            affectation.setStatus("CANCELED");
+            affectation.setDateEnd(LocalDateTime.now());
+            session.merge(affectation);
+
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
+            }
+            throw e;
+        }
+    }
 }

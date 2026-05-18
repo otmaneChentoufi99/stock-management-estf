@@ -49,23 +49,35 @@ public class AffectationListController {
 
         colAction.setCellFactory(param -> new TableCell<>() {
             private final Button viewBtn = new Button("Détails");
-            private final javafx.scene.layout.HBox pane = new javafx.scene.layout.HBox(5, viewBtn);
+            private final Button cancelBtn = new Button("Annuler");
+            private final javafx.scene.layout.HBox pane = new javafx.scene.layout.HBox(5, viewBtn, cancelBtn);
             {
                 viewBtn.setStyle("-fx-base: #3498db; -fx-text-fill: white;");
+                cancelBtn.setStyle("-fx-base: #e74c3c; -fx-text-fill: white;");
                 
                 viewBtn.setOnAction(event -> {
                     AffectationDto affectation = getTableView().getItems().get(getIndex());
                     RootController.instance.showAffectationManage(affectation);
+                });
+
+                cancelBtn.setOnAction(event -> {
+                    AffectationDto affectation = getTableView().getItems().get(getIndex());
+                    handleCancelAffectation(affectation);
                 });
             }
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || (getTableView().getItems().get(getIndex()) != null && "CLOSED".equals(getTableView().getItems().get(getIndex()).getStatus()))) {
+                if (empty || getTableView().getItems().get(getIndex()) == null) {
                     setGraphic(null);
                 } else {
-                    setGraphic(pane);
+                    AffectationDto aff = getTableView().getItems().get(getIndex());
+                    if ("ACTIVE".equals(aff.getStatus())) {
+                        setGraphic(pane);
+                    } else {
+                        setGraphic(null);
+                    }
                 }
             }
         });
@@ -130,5 +142,32 @@ public class AffectationListController {
 
     private void refreshData() {
         masterList.setAll(affectationService.getAllAffectations());
+    }
+
+    private void handleCancelAffectation(AffectationDto affectation) {
+        if (affectation == null) return;
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Annuler l'Affectation");
+        confirm.setHeaderText("Annuler l'affectation #" + affectation.getId() + "?");
+        confirm.setContentText("Cette action va restaurer les quantités de stock de tous les articles et remettre leurs numéros d'inventaire. Cette opération est irréversible.");
+
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    affectationService.cancelAffectation(affectation.getId());
+                    refreshData();
+                    
+                    Alert success = new Alert(Alert.AlertType.INFORMATION);
+                    success.setTitle("Succès");
+                    success.setHeaderText(null);
+                    success.setContentText("L'affectation a été annulée et le stock a été restauré.");
+                    success.showAndWait();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    showError("Échec de l'annulation: " + e.getMessage());
+                }
+            }
+        });
     }
 }
