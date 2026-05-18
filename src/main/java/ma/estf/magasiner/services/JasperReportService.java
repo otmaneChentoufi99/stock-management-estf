@@ -267,6 +267,90 @@ public class JasperReportService {
         }
     }
 
+    public java.io.File generateReturnReport(Affectation affectation, List<AffectationItem> returnedItems) throws Exception {
+        String templatePath = "/ma/estf/magasiner/reports/return_fiche.jrxml";
+        InputStream reportStream = getClass().getResourceAsStream(templatePath);
+        if (reportStream == null) {
+            throw new Exception("Report template not found: " + templatePath);
+        }
+        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(
+                "LOGO_PATH",
+                getClass()
+                        .getResource("/ma/estf/magasiner/images/estf-icon.png")
+                        .toString()
+        );
+        parameters.put("affectationId", affectation.getId());
+        parameters.put("date", java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        parameters.put("department", affectation.getDepartment() != null ? affectation.getDepartment().getName() : "");
+        parameters.put("beneficiary", affectation.getEmployeeName());
+        parameters.put("category", affectation.getCategory());
+        parameters.put("isMaterial", true);
+
+        String allFournisseurs = returnedItems.stream()
+                .map(AffectationItem::getFournisseur)
+                .filter(f -> f != null && !f.isEmpty())
+                .distinct()
+                .collect(Collectors.joining(", "));
+        parameters.put("fournisseur", allFournisseurs.isEmpty() ? "-" : allFournisseurs);
+
+        List<InvoiceItem> invoiceItems = new ArrayList<>();
+        Map<Article, List<AffectationItem>> grouped = returnedItems.stream()
+                .collect(Collectors.groupingBy(AffectationItem::getArticle, LinkedHashMap::new, Collectors.toList()));
+
+        for (Map.Entry<Article, List<AffectationItem>> entry : grouped.entrySet()) {
+            Article article = entry.getKey();
+            List<AffectationItem> items = entry.getValue();
+            int totalQty = items.stream().mapToInt(AffectationItem::getQuantity).sum();
+
+            List<String> invs = items.stream()
+                    .map(AffectationItem::getInventoryNumber)
+                    .filter(inv -> inv != null && !inv.trim().isEmpty())
+                    .sorted()
+                    .collect(Collectors.toList());
+            String invText = "-";
+            if (!invs.isEmpty()) {
+                if (invs.size() == 1) {
+                    invText = invs.get(0);
+                } else {
+                    invText = "de " + invs.get(0) + " à " + invs.get(invs.size() - 1);
+                }
+            }
+            invoiceItems.add(new InvoiceItem(article.getReference(), article.getName(), totalQty, invText, article.getCaracteristique(), article.getPrixUnit()));
+        }
+
+        // Combine all items into one record for a single-page material fiche with clean HTML formatting
+        String allDesignations = invoiceItems.stream()
+            .map(item -> "• <b>" + item.getDesignation() + "</b> : <i>" + item.getInventoryNumbers() + "</i>")
+            .collect(Collectors.joining("<br/>"));
+        String allRefs = invoiceItems.stream().map(InvoiceItem::getReference).collect(Collectors.joining(", "));
+        int totalQty = invoiceItems.stream().mapToInt(InvoiceItem::getQuantity).sum();
+        String allInvs = invoiceItems.stream().map(InvoiceItem::getInventoryNumbers).filter(s -> !"-".equals(s)).collect(Collectors.joining(", "));
+        if (allInvs.isEmpty()) allInvs = "-";
+
+        String allCaracteristiques = invoiceItems.stream()
+            .filter(item -> item.getCaracteristique() != null && !item.getCaracteristique().isEmpty())
+            .map(item -> "• <b>" + item.getDesignation() + "</b> : " + item.getCaracteristique())
+            .collect(Collectors.joining("<br/>"));
+        if (allCaracteristiques.isEmpty()) allCaracteristiques = "-";
+
+        InvoiceItem summary = new InvoiceItem(allRefs, allDesignations, totalQty, allInvs, allCaracteristiques, 0.0);
+        JRDataSource dataSource = new JRBeanCollectionDataSource(Collections.singletonList(summary));
+
+        parameters.put("itemsDataSource", new JRBeanCollectionDataSource(invoiceItems));
+
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        
+        String filename = "bon_retour_" + affectation.getId() + "_" + System.currentTimeMillis() + ".pdf";
+        java.io.File pdfFile = new java.io.File(filename);
+        JasperExportManager.exportReportToPdfFile(jasperPrint, pdfFile.getAbsolutePath());
+        
+        System.out.println("Return report saved to " + pdfFile.getAbsolutePath());
+        return pdfFile;
+    }
+
     private void generateLabels(Affectation affectation) throws Exception {
         InputStream reportStream = getClass().getResourceAsStream("/ma/estf/magasiner/reports/label.jrxml");
         if (reportStream == null) {

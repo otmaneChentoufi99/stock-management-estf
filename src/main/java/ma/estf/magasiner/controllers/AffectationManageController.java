@@ -34,8 +34,10 @@ public class AffectationManageController {
     @FXML private TableView<AffectationItemDto> selectionTable;
     @FXML private TableColumn<AffectationItemDto, String> colSelName;
     @FXML private TableColumn<AffectationItemDto, Integer> colSelQty;
-    @FXML private TableColumn<AffectationItemDto, String> colSelCond;
     @FXML private TableColumn<AffectationItemDto, Void> colSelRemove;
+    @FXML private Button returnAllBtn;
+    @FXML private TabPane actionTabPane;
+    @FXML private Tab returnTab;
 
     @FXML private ComboBox<String> targetDeptComboBox;
     @FXML private TextField targetEmployeeField;
@@ -108,31 +110,6 @@ public class AffectationManageController {
             }
         });
 
-        colSelCond.setCellFactory(param -> new TableCell<>() {
-            private final ComboBox<String> combo = new ComboBox<>(FXCollections.observableArrayList("GOOD", "DAMAGED", "BROKEN"));
-            private AffectationItemDto currentDto;
-            private final javafx.beans.value.ChangeListener<String> listener = (obs, oldV, newV) -> {
-                if (currentDto != null) currentDto.setCondition(newV);
-            };
-
-            {
-                combo.valueProperty().addListener(listener);
-                combo.setPrefWidth(100);
-            }
-
-            @Override protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || getIndex() < 0) {
-                    setGraphic(null);
-                    currentDto = null;
-                } else {
-                    currentDto = getTableView().getItems().get(getIndex());
-                    combo.setValue(currentDto.getCondition());
-                    setGraphic(combo);
-                }
-            }
-        });
-
         colSelRemove.setCellFactory(param -> new TableCell<>() {
             private final Button btn = new Button("✕");
             {
@@ -160,6 +137,19 @@ public class AffectationManageController {
             (aff.getDepartment() != null ? " (" + aff.getDepartment().getName() + ")" : ""));
         dateLabel.setText("Date: " + aff.getDate().format(formatter));
         
+        boolean isConsumable = "CONSOMMABLE".equals(aff.getCategory());
+        if (isConsumable) {
+            returnAllBtn.setVisible(false);
+            returnAllBtn.setManaged(false);
+            actionTabPane.getTabs().remove(returnTab);
+        } else {
+            returnAllBtn.setVisible(true);
+            returnAllBtn.setManaged(true);
+            if (!actionTabPane.getTabs().contains(returnTab)) {
+                actionTabPane.getTabs().add(returnTab);
+            }
+        }
+
         refreshItems();
     }
 
@@ -313,8 +303,8 @@ public class AffectationManageController {
     private void handleReturnAll() {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Retourner Tout");
-        confirm.setHeaderText("Retourner tous les articles au stock?");
-        confirm.setContentText("Les articles seront marqués comme étant en bon état (GOOD).");
+        confirm.setHeaderText("Retourner tous les matériels au stock?");
+        confirm.setContentText("Les matériels réintégreront le stock du magasin.");
 
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {

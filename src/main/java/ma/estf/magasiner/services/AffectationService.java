@@ -332,6 +332,10 @@ public class AffectationService {
             Affectation source = session.get(Affectation.class, assignmentId);
             if (source == null) throw new Exception("Assignment not found.");
 
+            if (!"MATERIEL".equals(source.getCategory())) {
+                throw new Exception("Le retour au magasin n'est pas autorisé pour les articles consommables.");
+            }
+
             List<AffectationItem> returnedEntities = new ArrayList<>();
             String fromEnt = (source.getDepartment() != null) ? source.getDepartment().getName() : source.getEmployeeName();
 
@@ -340,25 +344,41 @@ public class AffectationService {
                 if (sourceItem == null) continue;
                 
                 int qty = dto.getQuantity();
-                String condition = dto.getCondition();
 
                 if (sourceItem.getQuantity() < qty) throw new Exception("Insufficient quantity to return for: " + sourceItem.getArticle().getName());
 
-                ma.estf.magasiner.models.entity.MovementType mType = (condition.equals("DAMAGED") || condition.equals("BROKEN")) 
-                    ? ma.estf.magasiner.models.entity.MovementType.DAMAGE 
-                    : ma.estf.magasiner.models.entity.MovementType.RETURN;
-                
-                new MovementService().recordMovement(session, mType, sourceItem.getArticle().getId(), qty, fromEnt, "STOCK", "RETURN-FROM-" + assignmentId);
+                // Record return movement (which automatically increments quantityInStock)
+                new MovementService().recordMovement(session, ma.estf.magasiner.models.entity.MovementType.RETURN, sourceItem.getArticle().getId(), qty, fromEnt, "STOCK", "RETURN-FROM-" + assignmentId);
 
                 sourceItem.setQuantity(sourceItem.getQuantity() - qty);
-                sourceItem.setCondition(condition);
+                sourceItem.setCondition("RETURNED");
+
+                // Restore inventory number back to available pool
+                Article article = sourceItem.getArticle();
+                if (article != null) {
+                    String invNum = sourceItem.getInventoryNumber();
+                    if (invNum != null && !invNum.isEmpty() && !"-".equals(invNum)) {
+                        List<String> invList = article.getAvailableInventoryNumbers();
+                        if (invList == null) {
+                            invList = new ArrayList<>();
+                            article.setAvailableInventoryNumbers(invList);
+                        }
+                        if (!invList.contains(invNum)) {
+                            invList.add(invNum);
+                            Collections.sort(invList);
+                        }
+                    }
+                    session.merge(article);
+                }
 
                 // Create a temporary item for PDF generation
                 AffectationItem temp = AffectationItem.builder()
                         .article(sourceItem.getArticle())
                         .quantity(qty)
                         .inventoryNumber(sourceItem.getInventoryNumber())
-                        .condition(condition)
+                        .condition("RETURNED")
+                        .bcNumero(sourceItem.getBcNumero())
+                        .fournisseur(sourceItem.getFournisseur())
                         .build();
                 returnedEntities.add(temp);
             }
@@ -370,69 +390,11 @@ public class AffectationService {
             }
 
             tx.commit();
-            return generateReturnInvoice(source, returnedEntities);
+            return new JasperReportService().generateReturnReport(source, returnedEntities);
         } catch (Exception e) {
             if (tx != null) tx.rollback();
             throw e;
         }
-    }
-
-    private java.io.File generateReturnInvoice(Affectation source, List<AffectationItem> items) throws Exception {
-        String filename = "bon_retour_" + source.getId() + "_" + System.currentTimeMillis() + ".pdf";
-        java.io.File pdfFile = new java.io.File(filename);
-        com.lowagie.text.Document document = new com.lowagie.text.Document(com.lowagie.text.PageSize.A4);
-        com.lowagie.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(pdfFile));
-        document.open();
-        
-        com.lowagie.text.Font boldFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.BOLD);
-        com.lowagie.text.Font normalFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.NORMAL);
-        com.lowagie.text.Font titleFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 18, com.lowagie.text.Font.BOLD);
-        titleFont.setColor(new java.awt.Color(46, 204, 113));
-
-        document.add(new com.lowagie.text.Paragraph("UNIVERSITE SIDI MOHAMED BEN ABDELLAH", boldFont));
-        document.add(new com.lowagie.text.Paragraph("ECOLE SUPERIEURE DE TECHNOLOGIE - FES", boldFont));
-        document.add(new com.lowagie.text.Paragraph("\n"));
-
-        com.lowagie.text.Paragraph title = new com.lowagie.text.Paragraph("BON DE RETOUR AU MAGASIN", titleFont);
-        title.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
-        document.add(title);
-        document.add(new com.lowagie.text.Paragraph("\n"));
-
-        document.add(new com.lowagie.text.Paragraph("Fait a Fes, le: " + java.time.LocalDate.now().toString(), normalFont));
-        document.add(new com.lowagie.text.Paragraph("Bénéficiaire d'origine: " + source.getEmployeeName(), normalFont));
-        document.add(new com.lowagie.text.Paragraph("\n"));
-
-        boolean isMaterial = "MATERIEL".equals(source.getCategory());
-        int numCols = isMaterial ? 4 : 3;
-        com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(numCols);
-        table.setWidthPercentage(100);
-        
-        String[] headers = isMaterial ? new String[]{"Reference", "Designation", "Qte Retournee", "N° Inventaire"} : new String[]{"Reference", "Designation", "Qte Retournee"};
-        for (String h : headers) {
-            com.lowagie.text.pdf.PdfPCell cell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(h, boldFont));
-            cell.setBackgroundColor(new java.awt.Color(200, 255, 200));
-            table.addCell(cell);
-        }
-
-        for (AffectationItem item : items) {
-            table.addCell(new com.lowagie.text.Phrase(item.getArticle().getReference(), normalFont));
-            table.addCell(new com.lowagie.text.Phrase(item.getArticle().getName(), normalFont));
-            table.addCell(new com.lowagie.text.Phrase(String.valueOf(item.getQuantity()), normalFont));
-            if (isMaterial) {
-                table.addCell(new com.lowagie.text.Phrase(item.getInventoryNumber() != null ? item.getInventoryNumber() : "-", normalFont));
-            }
-        }
-        document.add(table);
-        document.add(new com.lowagie.text.Paragraph("\n\n"));
-        
-        com.lowagie.text.pdf.PdfPTable sigTable = new com.lowagie.text.pdf.PdfPTable(2);
-        sigTable.setWidthPercentage(100);
-        sigTable.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Signature du Magasinier", boldFont)));
-        sigTable.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Signature du Déposant", boldFont)));
-        document.add(sigTable);
-
-        document.close();
-        return pdfFile;
     }
 
     public void transferAllItems(Long assignmentId, String newEmployeeName, Department newDept) throws Exception {
