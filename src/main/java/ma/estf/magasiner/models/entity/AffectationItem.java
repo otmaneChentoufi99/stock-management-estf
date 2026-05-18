@@ -37,4 +37,7 @@ public class AffectationItem {
 
     @Column(nullable = true)
     private String fournisseur;
+
+    @Column(name = "source_item_id", nullable = true)
+    private Long sourceItemId;
 }

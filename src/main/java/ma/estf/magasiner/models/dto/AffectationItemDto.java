@@ -12,4 +12,5 @@ public class AffectationItemDto {
     private int quantity;
     private String inventoryNumber;
     private String condition;
+    private Long sourceItemId;
 }

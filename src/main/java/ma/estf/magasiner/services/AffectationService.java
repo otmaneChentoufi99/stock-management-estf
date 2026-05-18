@@ -251,7 +251,7 @@ public class AffectationService {
         return pdfFile;
     }
 
-    public java.io.File transferItems(Long assignmentId, Map<Long, Integer> itemsToTransfer, String newEmployeeName, Department newDept) throws Exception {
+    public java.io.File transferItems(Long assignmentId, Map<Long, Integer> itemsToTransfer, String newEmployeeName, Long newDeptId) throws Exception {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
@@ -259,18 +259,23 @@ public class AffectationService {
             Affectation source = session.get(Affectation.class, assignmentId);
             if (source == null) throw new Exception("Source assignment not found.");
 
+            Department dept = null;
+            if (newDeptId != null) {
+                dept = session.get(Department.class, newDeptId);
+            }
+
             // Create new Assignment
             Affectation target = Affectation.builder()
                 .date(LocalDateTime.now())
                 .employeeName(newEmployeeName)
-                .department(newDept)
+                .department(dept)
                 .category(source.getCategory())
                 .items(new ArrayList<>())
                 .build();
             session.persist(target);
 
             String fromEnt = (source.getDepartment() != null) ? source.getDepartment().getName() : source.getEmployeeName();
-            String toEnt = (newDept != null) ? newDept.getName() : newEmployeeName;
+            String toEnt = (dept != null) ? dept.getName() : newEmployeeName;
 
             for (Map.Entry<Long, Integer> entry : itemsToTransfer.entrySet()) {
                 Long itemId = entry.getKey();
@@ -288,6 +293,7 @@ public class AffectationService {
                     .condition(sourceItem.getCondition())
                     .bcNumero(sourceItem.getBcNumero())
                     .fournisseur(sourceItem.getFournisseur())
+                    .sourceItemId(sourceItem.getId())
                     .build();
                 target.getItems().add(targetItem);
                 
@@ -460,6 +466,7 @@ public class AffectationService {
                         .quantity(qty)
                         .inventoryNumber(sourceItem.getInventoryNumber())
                         .condition(sourceItem.getCondition())
+                        .sourceItemId(sourceItem.getId())
                         .build();
                     session.persist(targetItem);
 
@@ -529,37 +536,75 @@ public class AffectationService {
             for (AffectationItem item : affectation.getItems()) {
                 Article article = item.getArticle();
                 if (article != null && item.getQuantity() > 0) {
-                    // 1. Revert quantity in stock
-                    article.setQuantityInStock(article.getQuantityInStock() + item.getQuantity());
+                    boolean restoredToSource = false;
 
-                    // 2. Revert inventory number if applicable
-                    if ("MATERIEL".equals(affectation.getCategory())) {
-                        String invNum = item.getInventoryNumber();
-                        if (invNum != null && !invNum.isEmpty() && !"-".equals(invNum)) {
-                            List<String> invList = article.getAvailableInventoryNumbers();
-                            if (invList == null) {
-                                invList = new ArrayList<>();
-                                article.setAvailableInventoryNumbers(invList);
+                    if (item.getSourceItemId() != null) {
+                        AffectationItem sourceItem = session.get(AffectationItem.class, item.getSourceItemId());
+                        if (sourceItem != null) {
+                            // Restore quantity to original/source item
+                            sourceItem.setQuantity(sourceItem.getQuantity() + item.getQuantity());
+                            
+                            Affectation sourceAff = sourceItem.getAffectation();
+                            if (sourceAff != null && "CLOSED".equals(sourceAff.getStatus())) {
+                                sourceAff.setStatus("ACTIVE");
+                                sourceAff.setDateEnd(null);
+                                session.merge(sourceAff);
                             }
-                            if (!invList.contains(invNum)) {
-                                invList.add(invNum);
-                                Collections.sort(invList);
+                            session.merge(sourceItem);
+
+                            String sourceName = "-";
+                            if (sourceAff != null) {
+                                sourceName = (sourceAff.getDepartment() != null) ? sourceAff.getDepartment().getName() : sourceAff.getEmployeeName();
                             }
+
+                            // Record TRANSFER movement back to the original source beneficiary/dept
+                            new MovementService().recordMovement(
+                                session,
+                                ma.estf.magasiner.models.entity.MovementType.TRANSFER,
+                                article.getId(),
+                                item.getQuantity(),
+                                targetName,
+                                sourceName,
+                                "CANCEL-TRANSFER-" + assignmentId
+                            );
+
+                            restoredToSource = true;
                         }
                     }
 
-                    // 3. Record CORRECTION movement
-                    new MovementService().recordMovement(
-                        session,
-                        ma.estf.magasiner.models.entity.MovementType.CORRECTION,
-                        article.getId(),
-                        item.getQuantity(),
-                        targetName,
-                        "STOCK",
-                        "CANCEL-AFFECTATION-" + assignmentId
-                    );
+                    if (!restoredToSource) {
+                        // 1. Revert quantity in stock
+                        article.setQuantityInStock(article.getQuantityInStock() + item.getQuantity());
 
-                    session.merge(article);
+                        // 2. Revert inventory number if applicable
+                        if ("MATERIEL".equals(affectation.getCategory())) {
+                            String invNum = item.getInventoryNumber();
+                            if (invNum != null && !invNum.isEmpty() && !"-".equals(invNum)) {
+                                List<String> invList = article.getAvailableInventoryNumbers();
+                                if (invList == null) {
+                                    invList = new ArrayList<>();
+                                    article.setAvailableInventoryNumbers(invList);
+                                }
+                                if (!invList.contains(invNum)) {
+                                    invList.add(invNum);
+                                    Collections.sort(invList);
+                                }
+                            }
+                        }
+
+                        // 3. Record CORRECTION movement to stock
+                        new MovementService().recordMovement(
+                            session,
+                            ma.estf.magasiner.models.entity.MovementType.CORRECTION,
+                            article.getId(),
+                            item.getQuantity(),
+                            targetName,
+                            "STOCK",
+                            "CANCEL-AFFECTATION-" + assignmentId
+                        );
+
+                        session.merge(article);
+                    }
                 }
 
                 // Zero out the item's active quantity

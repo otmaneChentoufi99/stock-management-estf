@@ -7,11 +7,14 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import ma.estf.magasiner.models.dto.AffectationDto;
 import ma.estf.magasiner.models.dto.AffectationItemDto;
+import ma.estf.magasiner.models.dto.DepartmentDto;
 import ma.estf.magasiner.services.AffectationService;
+import ma.estf.magasiner.services.DepartmentService;
 
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class AffectationManageController {
@@ -34,9 +37,12 @@ public class AffectationManageController {
     @FXML private TableColumn<AffectationItemDto, String> colSelCond;
     @FXML private TableColumn<AffectationItemDto, Void> colSelRemove;
 
-    @FXML private TextField targetField;
+    @FXML private ComboBox<String> targetDeptComboBox;
+    @FXML private TextField targetEmployeeField;
 
     private final AffectationService affectationService = new AffectationService();
+    private final DepartmentService deptService = new DepartmentService();
+    private List<DepartmentDto> departments;
     private AffectationDto currentAffectation;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final ObservableList<AffectationItemDto> selectionList = FXCollections.observableArrayList();
@@ -140,6 +146,11 @@ public class AffectationManageController {
         });
 
         selectionTable.setItems(selectionList);
+
+        departments = deptService.getAllDepartments();
+        targetDeptComboBox.setItems(FXCollections.observableArrayList(
+            departments.stream().map(ma.estf.magasiner.models.dto.DepartmentDto::getName).collect(Collectors.toList())
+        ));
     }
 
     public void setAffectation(AffectationDto aff) {
@@ -183,17 +194,23 @@ public class AffectationManageController {
     private void handleBulkTransfer() {
         if (selectionList.isEmpty()) return;
 
-        String target = targetField.getText();
-        if (target == null || target.trim().isEmpty()) {
-            showError("Veuillez indiquer un bénéficiaire ou département cible.");
+        int deptIdx = targetDeptComboBox.getSelectionModel().getSelectedIndex();
+        String empName = targetEmployeeField.getText();
+
+        if (deptIdx < 0 && (empName == null || empName.trim().isEmpty())) {
+            showError("Veuillez sélectionner un département ou saisir un nom d'employé.");
             return;
         }
+
+        Long deptId = (deptIdx >= 0) ? departments.get(deptIdx).getId() : null;
 
         try {
             Map<Long, Integer> itemsMap = selectionList.stream()
                     .collect(Collectors.toMap(AffectationItemDto::getId, AffectationItemDto::getQuantity));
             
-            java.io.File pdf = affectationService.transferItems(currentAffectation.getId(), itemsMap, target, null);
+            java.io.File pdf = affectationService.transferItems(currentAffectation.getId(), itemsMap, empName, deptId);
+            targetDeptComboBox.getSelectionModel().clearSelection();
+            targetEmployeeField.clear();
             refreshItems();
             openPdf(pdf);
             showAlert("Succès", "Transfert groupé effectué. Facture générée.");
@@ -230,19 +247,59 @@ public class AffectationManageController {
 
     @FXML
     private void handleTransferAll() {
-        TextInputDialog dialog = new TextInputDialog("");
+        Dialog<javafx.util.Pair<Long, String>> dialog = new Dialog<>();
         dialog.setTitle("Transférer Tout");
         dialog.setHeaderText("Transférer tous les articles à une nouvelle destination");
-        dialog.setContentText("Bénéficiaire / Service:");
 
-        dialog.showAndWait().ifPresent(target -> {
+        ButtonType loginButtonType = new ButtonType("Transférer", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+
+        ComboBox<String> deptCombo = new ComboBox<>();
+        deptCombo.setItems(FXCollections.observableArrayList(
+            departments.stream().map(ma.estf.magasiner.models.dto.DepartmentDto::getName).collect(Collectors.toList())
+        ));
+        deptCombo.setPromptText("Sélectionner Département");
+        deptCombo.setPrefWidth(200);
+
+        TextField empField = new TextField();
+        empField.setPromptText("Nom de l'employé");
+        empField.setPrefWidth(200);
+
+        grid.add(new Label("Département:"), 0, 0);
+        grid.add(deptCombo, 1, 0);
+        grid.add(new Label("Nom Employé:"), 0, 1);
+        grid.add(empField, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == loginButtonType) {
+                int sIdx = deptCombo.getSelectionModel().getSelectedIndex();
+                Long deptId = (sIdx >= 0) ? departments.get(sIdx).getId() : null;
+                return new javafx.util.Pair<>(deptId, empField.getText());
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(result -> {
+            Long deptId = result.getKey();
+            String empName = result.getValue();
+            if (deptId == null && (empName == null || empName.trim().isEmpty())) {
+                showError("Veuillez sélectionner un département ou saisir un nom d'employé.");
+                return;
+            }
             try {
                 // We can reuse bulk logic technically
                 Map<Long, Integer> itemsMap = currentAffectation.getItems().stream()
                         .filter(i -> i.getQuantity() > 0)
                         .collect(Collectors.toMap(AffectationItemDto::getId, AffectationItemDto::getQuantity));
                 
-                java.io.File pdf = affectationService.transferItems(currentAffectation.getId(), itemsMap, target, null);
+                java.io.File pdf = affectationService.transferItems(currentAffectation.getId(), itemsMap, empName, deptId);
                 refreshItems();
                 openPdf(pdf);
                 showAlert("Succès", "Tous les articles ont été transférés.");

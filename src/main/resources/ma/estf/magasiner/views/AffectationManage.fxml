@@ -22,7 +22,6 @@
         </VBox>
         <HBox spacing="10" alignment="CENTER_RIGHT">
             <Button text="Transférer Tout" onAction="#handleTransferAll" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold;"/>
-            <Button text="Retourner Tout" onAction="#handleReturnAll" style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;"/>
         </HBox>
     </HBox>
 
@@ -44,7 +43,7 @@
 
         <!-- Right: Selection for Actions -->
         <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 10;">
-            <Label text="Sélection pour Transfert / Retour" style="-fx-font-weight: bold; -fx-text-fill: #34495e;"/>
+            <Label text="Sélection pour Transfert" style="-fx-font-weight: bold; -fx-text-fill: #34495e;"/>
             <TableView fx:id="selectionTable" VBox.vgrow="ALWAYS">
                 <columns>
                     <TableColumn fx:id="colSelName" text="Désignation" prefWidth="120"/>
@@ -55,11 +54,17 @@
             </TableView>
             <Separator/>
             <VBox spacing="10">
-                <Label text="Cible du Transfert (si applicable):" style="-fx-font-size: 11px;"/>
-                <TextField fx:id="targetField" promptText="Nom ou Département"/>
-                <HBox spacing="10" alignment="CENTER">
+                <Label text="Cible du Transfert:" style="-fx-font-weight: bold; -fx-text-fill: #34495e; -fx-font-size: 12px;"/>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Département:" prefWidth="95" style="-fx-font-size: 11px;"/>
+                    <ComboBox fx:id="targetDeptComboBox" promptText="Sélectionner Département" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Nom Employé:" prefWidth="95" style="-fx-font-size: 11px;"/>
+                    <TextField fx:id="targetEmployeeField" promptText="Nom de l'employé" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER" style="-fx-padding: 5 0 0 0;">
                     <Button text="Transférer" onAction="#handleBulkTransfer" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;"/>
-                    <Button text="Retourner" onAction="#handleBulkReturn" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold;"/>
                 </HBox>
             </VBox>
         </VBox>
