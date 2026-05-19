@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.geometry.Insets?>
+
+<TabPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+         fx:controller="ma.estf.magasiner.controllers.ReportsController"
+         tabClosingPolicy="UNAVAILABLE"
+         style="-fx-background-color: #f8f9fa;">
+         
+    <!-- TAB 1: DASHBOARD & STATS -->
+    <Tab text="Tableau de Bord &amp; Stats">
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-padding: 10px;">
+            <VBox spacing="20" style="-fx-padding: 15px;">
+                <!-- Header -->
+                <VBox spacing="5">
+                    <Label text="Statistiques &amp; Tableau de Bord" style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    <Label text="Aperçu visuel de l'état actuel de votre inventaire et de l'activité du magasin." style="-fx-font-size: 14px; -fx-text-fill: #7f8c8d;"/>
+                </VBox>
+
+                <!-- KPI Cards -->
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <VBox style="-fx-background-color: #9b59b6; -fx-padding: 15px 20px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 3);" prefWidth="230">
+                        <Label text="Valeur Estimée Stock" style="-fx-text-fill: white; -fx-font-size: 14px;"/>
+                        <Label fx:id="lblTotalValue" text="0.00 DH" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 5px 0 0 0;"/>
+                    </VBox>
+                    <VBox style="-fx-background-color: #3498db; -fx-padding: 15px 20px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 3);" prefWidth="230">
+                        <Label text="Articles en Stock" style="-fx-text-fill: white; -fx-font-size: 14px;"/>
+                        <Label fx:id="lblTotalArticles" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 5px 0 0 0;"/>
+                    </VBox>
+                    <VBox style="-fx-background-color: #e67e22; -fx-padding: 15px 20px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 3);" prefWidth="230">
+                        <Label text="Alertes Stock Bas (&lt; 10)" style="-fx-text-fill: white; -fx-font-size: 14px;"/>
+                        <Label fx:id="lblLowStock" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 5px 0 0 0;"/>
+                    </VBox>
+                    <VBox style="-fx-background-color: #e74c3c; -fx-padding: 15px 20px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 3);" prefWidth="230">
+                        <Label text="Stock Endommagé" style="-fx-text-fill: white; -fx-font-size: 14px;"/>
+                        <Label fx:id="lblDamagedCount" text="0" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 5px 0 0 0;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Grid of Charts -->
+                <GridPane hgap="20" vgap="20">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50" />
+                        <ColumnConstraints percentWidth="50" />
+                    </columnConstraints>
+                    
+                    <VBox style="-fx-background-color: white; -fx-padding: 15px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 3);" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <PieChart fx:id="categoryPieChart" title="Distribution du Stock par Catégorie" legendSide="BOTTOM" prefHeight="350"/>
+                    </VBox>
+                    
+                    <VBox style="-fx-background-color: white; -fx-padding: 15px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 3);" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <BarChart fx:id="stockBarChart" title="Niveaux de Stock (Top 8 Articles)" prefHeight="350">
+                            <xAxis>
+                                <CategoryAxis fx:id="barXAxis" label="Articles" side="BOTTOM" />
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis fx:id="barYAxis" label="Quantité" side="LEFT" />
+                            </yAxis>
+                        </BarChart>
+                    </VBox>
+                </GridPane>
+
+                <!-- Movement History Chart -->
+                <VBox style="-fx-background-color: white; -fx-padding: 15px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 3);" prefHeight="380">
+                    <LineChart fx:id="movementLineChart" title="Tendances des Mouvements (30 derniers jours)">
+                        <xAxis>
+                            <CategoryAxis fx:id="lineXAxis" label="Date" side="BOTTOM"/>
+                        </xAxis>
+                        <yAxis>
+                            <NumberAxis fx:id="lineYAxis" label="Quantité de mouvement" side="LEFT"/>
+                        </yAxis>
+                    </LineChart>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </Tab>
+
+    <!-- TAB 2: EXPORT REPORTS -->
+    <Tab text="Exportation des Rapports">
+        <VBox spacing="15" style="-fx-padding: 25px; -fx-background-color: white;">
+            <!-- Header -->
+            <VBox spacing="5">
+                <Label text="Génération &amp; Exportation de Rapports" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                <Label text="Configurez vos critères, prévisualisez les données et exportez-les dans le format souhaité." style="-fx-font-size: 14px; -fx-text-fill: #7f8c8d;"/>
+            </VBox>
+            
+            <Separator/>
+
+            <!-- Filter Controls -->
+            <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: #f8f9fa; -fx-padding: 15px; -fx-border-radius: 6px; -fx-background-radius: 6px;">
+                <VBox spacing="5">
+                    <Label text="Type de rapport" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    <ComboBox fx:id="reportTypeCombo" prefWidth="200" />
+                </VBox>
+                
+                <VBox fx:id="dateRangeContainer" spacing="5">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <VBox spacing="5">
+                            <Label text="Date Début" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                            <DatePicker fx:id="startDatePicker" prefWidth="130" />
+                        </VBox>
+                        <VBox spacing="5">
+                            <Label text="Date Fin" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                            <DatePicker fx:id="endDatePicker" prefWidth="130" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="5" alignment="BOTTOM_LEFT">
+                    <Button fx:id="btnPreview" text="Filtrer &amp; Prévisualiser" onAction="#handleFilterPreview" prefHeight="30"
+                            style="-fx-base: #34495e; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                </VBox>
+            </HBox>
+
+            <!-- Table Preview Title -->
+            <Label text="Aperçu du Rapport" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #34495e;"/>
+
+            <!-- Preview TableView -->
+            <TableView fx:id="previewTable" VBox.vgrow="ALWAYS" style="-fx-border-color: #dcdde1; -fx-border-radius: 4px;">
+                <!-- Columns populated dynamically in Java code -->
+                <placeholder>
+                    <Label text="Aucun résultat. Cliquez sur 'Filtrer &amp; Prévisualiser' pour charger les données." style="-fx-text-fill: #7f8c8d;"/>
+                </placeholder>
+            </TableView>
+
+            <!-- Export Section -->
+            <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-background-color: #f8f9fa; -fx-padding: 12px; -fx-border-radius: 6px; -fx-background-radius: 6px;">
+                <HBox spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                    <Label text="Format d'exportation :" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    <ComboBox fx:id="exportFormatCombo" prefWidth="150" />
+                </HBox>
+                <Button fx:id="btnExport" text="Exporter le Rapport" onAction="#handleExport"
+                        style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 8px 20px; -fx-border-radius: 4px; -fx-cursor: hand;" />
+            </HBox>
+        </VBox>
+    </Tab>
+</TabPane>

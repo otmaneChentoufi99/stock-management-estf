@@ -45,7 +45,7 @@
         <!-- Right: Selection for Actions -->
         <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 10;">
             <Label text="Articles Sélectionnés" style="-fx-font-weight: bold; -fx-text-fill: #34495e;"/>
-            <TableView fx:id="selectionTable" VBox.vgrow="ALWAYS">
+            <TableView fx:id="selectionTable" >
                 <columns>
                     <TableColumn fx:id="colSelName" text="Désignation" prefWidth="160"/>
                     <TableColumn fx:id="colSelQty" text="Qté" prefWidth="70"/>
@@ -53,7 +53,7 @@
                 </columns>
             </TableView>
             <Separator/>
-            <TabPane fx:id="actionTabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="NEVER" style="-fx-background-color: transparent;">
+            <TabPane fx:id="actionTabPane" tabClosingPolicy="UNAVAILABLE" style="-fx-background-color: transparent;">
                 <tabs>
                     <Tab text="Transférer">
                         <content>
