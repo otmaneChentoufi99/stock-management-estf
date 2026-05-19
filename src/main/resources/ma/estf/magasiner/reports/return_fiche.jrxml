@@ -185,7 +185,7 @@
             
             <!-- 4. CARACTERISTIQUES SECTION -->
             <line>
-                <reportElement x="30" y="455" width="535" height="1"/>
+                <reportElement x="30" y="520" width="535" height="1"/>
             </line>
 
             <staticText>
@@ -197,7 +197,7 @@
             </staticText>
 
             <textField textAdjust="StretchHeight">
-                <reportElement x="45" y="320" width="505" height="135"/>
+                <reportElement x="45" y="320" width="505" height="195"/>
                 <textElement verticalAlignment="Top" markup="html">
                     <font size="10"/>
                 </textElement>
@@ -206,20 +206,20 @@
             
             <!-- 5. DATE & FOURNISSEUR SECTION -->
             <line>
-                <reportElement x="30" y="490" width="535" height="1"/>
+                <reportElement x="30" y="555" width="535" height="1"/>
             </line>
             <line>
-                <reportElement x="297" y="455" width="1" height="35"/>
+                <reportElement x="297" y="520" width="1" height="35"/>
             </line>
 
             <staticText>
-                <reportElement x="40" y="455" width="100" height="35"/>
+                <reportElement x="40" y="520" width="100" height="35"/>
                 <textElement verticalAlignment="Middle"/>
                 <text><![CDATA[DATE DE RETOUR: ]]></text>
             </staticText>
 
             <textField>
-                <reportElement x="140" y="455" width="150" height="35"/>
+                <reportElement x="140" y="520" width="150" height="35"/>
                 <textElement verticalAlignment="Middle">
                     <font isBold="true"/>
                 </textElement>
@@ -227,13 +227,13 @@
             </textField>
 
             <staticText>
-                <reportElement x="307" y="455" width="80" height="35"/>
+                <reportElement x="307" y="520" width="80" height="35"/>
                 <textElement verticalAlignment="Middle"/>
                 <text><![CDATA[FOURNISSEUR: ]]></text>
             </staticText>
 
             <textField textAdjust="ScaleFont">
-                <reportElement x="387" y="455" width="170" height="35"/>
+                <reportElement x="387" y="520" width="170" height="35"/>
                 <textElement verticalAlignment="Middle">
                     <font isBold="true"/>
                 </textElement>
@@ -242,17 +242,17 @@
 
             <!-- 6. AFFECTATION SECTION -->
             <line>
-                <reportElement x="30" y="525" width="535" height="1"/>
+                <reportElement x="30" y="590" width="535" height="1"/>
             </line>
 
             <staticText>
-                <reportElement x="40" y="490" width="150" height="35"/>
+                <reportElement x="40" y="555" width="150" height="35"/>
                 <textElement verticalAlignment="Middle"/>
                 <text><![CDATA[ORIGINE AFFECTATION: ]]></text>
             </staticText>
 
             <textField>
-                <reportElement x="190" y="490" width="365" height="35"/>
+                <reportElement x="190" y="555" width="365" height="35"/>
                 <textElement verticalAlignment="Middle">
                     <font isBold="true"/>
                 </textElement>
@@ -261,11 +261,11 @@
 
             <!-- 7. SIGNATURES SECTION -->
             <line>
-                <reportElement x="310" y="525" width="1" height="195"/>
+                <reportElement x="310" y="590" width="1" height="130"/>
             </line>
 
             <staticText>
-                <reportElement x="40" y="535" width="260" height="20"/>
+                <reportElement x="40" y="600" width="260" height="20"/>
                 <textElement textAlignment="Center">
                     <font isBold="true" isUnderline="true"/>
                 </textElement>
@@ -273,7 +273,7 @@
             </staticText>
 
             <textField textAdjust="StretchHeight">
-                <reportElement x="40" y="565" width="260" height="20"/>
+                <reportElement x="40" y="630" width="260" height="20"/>
                 <textElement>
                     <font size="10"/>
                 </textElement>
@@ -281,7 +281,7 @@
             </textField>
 
             <textField>
-                <reportElement x="40" y="590" width="260" height="20"/>
+                <reportElement x="40" y="655" width="260" height="20"/>
                 <textElement>
                     <font size="10"/>
                 </textElement>
@@ -289,7 +289,7 @@
             </textField>
 
             <staticText>
-                <reportElement x="320" y="535" width="235" height="20"/>
+                <reportElement x="320" y="600" width="235" height="20"/>
                 <textElement textAlignment="Center">
                     <font isBold="true" isUnderline="true"/>
                 </textElement>
