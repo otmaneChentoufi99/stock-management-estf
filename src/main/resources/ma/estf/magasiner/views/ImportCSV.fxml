@@ -48,9 +48,9 @@
         <Label text="Review Parsed Items"
                style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
 
-        <TableView fx:id="articlesTable" prefHeight="250">
+        <TableView fx:id="articlesTable" prefHeight="550">
             <columns>
-                <TableColumn fx:id="colDesignation" text="Désignation" prefWidth="300"/>
+                <TableColumn fx:id="colDesignation" text="Désignation" prefWidth="450"/>
                 <TableColumn fx:id="colQuantity" text="Quantité" prefWidth="100"/>
                 <TableColumn fx:id="colNeedsInvNum" text="N° Inventaire ?" prefWidth="120"/>
                 <TableColumn fx:id="colCategory" text="Catégorie" prefWidth="150"/>

@@ -59,6 +59,7 @@ public class BonCommandeListController {
     private final CategoryService categoryService = new CategoryService();
     private final ArticleService articleService = new ArticleService();
     private final SequenceDao sequenceDao = new SequenceDao();
+    private final List<String> sessionAllocatedNumbers = new java.util.ArrayList<>();
 
     @FXML
     public void initialize() {
@@ -105,16 +106,114 @@ public class BonCommandeListController {
     private void setupDetailsTable() {
         colItemDesignation.setCellValueFactory(cellData -> 
             new SimpleStringProperty(cellData.getValue().getArticle().getName()));
-        colItemDesignation.setCellFactory(TextFieldTableCell.forTableColumn());
-        colItemDesignation.setOnEditCommit(event -> {
-            event.getRowValue().getArticle().setName(event.getNewValue());
+        colItemDesignation.setCellFactory(column -> new TableCell<>() {
+            private TextArea textArea;
+
+            @Override
+            public void startEdit() {
+                if (!isEmpty()) {
+                    super.startEdit();
+                    createTextArea();
+                    setText(null);
+                    setGraphic(textArea);
+                    textArea.selectAll();
+                    textArea.requestFocus();
+                }
+            }
+
+            @Override
+            public void cancelEdit() {
+                super.cancelEdit();
+                setText(getItem());
+                setGraphic(null);
+            }
+
+            @Override
+            public void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    if (isEditing()) {
+                        if (textArea != null) {
+                            textArea.setText(getString());
+                        }
+                        setText(null);
+                        setGraphic(textArea);
+                    } else {
+                        setText(getString());
+                        setGraphic(null);
+                        setWrapText(true);
+                    }
+                }
+            }
+
+            private void createTextArea() {
+                textArea = new TextArea(getString());
+                textArea.setWrapText(true);
+                textArea.setPrefRowCount(calculateRowCount(getString()));
+                textArea.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
+                textArea.textProperty().addListener((obs, oldVal, newVal) -> {
+                    textArea.setPrefRowCount(calculateRowCount(newVal));
+                });
+                textArea.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                    if (!newVal) {
+                        commitEdit(textArea.getText());
+                    }
+                });
+                textArea.setOnKeyPressed(event -> {
+                    if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                        cancelEdit();
+                    }
+                });
+            }
+
+            private String getString() {
+                return getItem() == null ? "" : getItem();
+            }
+
+            @Override
+            public void commitEdit(String newValue) {
+                super.commitEdit(newValue);
+                if (getTableRow() != null && getTableRow().getItem() != null) {
+                    getTableRow().getItem().getArticle().setName(newValue);
+                }
+            }
         });
 
         colItemCaracteristique.setCellValueFactory(cellData -> 
             new SimpleStringProperty(cellData.getValue().getArticle().getCaracteristique()));
-        colItemCaracteristique.setCellFactory(TextFieldTableCell.forTableColumn());
-        colItemCaracteristique.setOnEditCommit(event -> {
-            event.getRowValue().getArticle().setCaracteristique(event.getNewValue());
+        colItemCaracteristique.setCellFactory(param -> new TableCell<LigneBonCommandeDto, String>() {
+            private final TextArea textArea = new TextArea();
+            private boolean updating = false;
+
+            {
+                textArea.setPromptText("Caractéristique...");
+                textArea.setWrapText(true);
+                textArea.textProperty().addListener((obs, oldVal, newVal) -> {
+                    textArea.setPrefRowCount(calculateRowCount(newVal));
+                    if (updating) return;
+                    LigneBonCommandeDto item = getTableRow() != null ? getTableRow().getItem() : null;
+                    if (item != null && item.getArticle() != null) {
+                        item.getArticle().setCaracteristique(newVal != null ? newVal : "");
+                    }
+                });
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    updating = true;
+                    textArea.setText(item == null ? "" : item);
+                    textArea.setPrefRowCount(calculateRowCount(item));
+                    updating = false;
+                    setGraphic(textArea);
+                }
+            }
         });
 
         colItemQty.setCellValueFactory(new PropertyValueFactory<>("quantiteCommandee"));
@@ -154,6 +253,25 @@ public class BonCommandeListController {
             if (val != null) {
                 List<String> list = Arrays.asList(val.split(",\\s*"));
                 event.getRowValue().getArticle().setAvailableInventoryNumbers(new ArrayList<>(list));
+                
+                // Re-sync sessionAllocatedNumbers from the current state of the table
+                sessionAllocatedNumbers.clear();
+                for (LigneBonCommandeDto ligne : detailsTable.getItems()) {
+                    if (ligne.getArticle() != null && ligne.getArticle().getAvailableInventoryNumbers() != null) {
+                        for (String inv : ligne.getArticle().getAvailableInventoryNumbers()) {
+                            if (inv != null && !inv.trim().isEmpty() && !sessionAllocatedNumbers.contains(inv)) {
+                                sessionAllocatedNumbers.add(inv);
+                            }
+                        }
+                    }
+                }
+                sessionAllocatedNumbers.sort((a, b) -> {
+                    try {
+                        return Long.compare(Long.parseLong(a), Long.parseLong(b));
+                    } catch (NumberFormatException e) {
+                        return a.compareTo(b);
+                    }
+                });
             }
         });
 
@@ -166,15 +284,40 @@ public class BonCommandeListController {
             CategoryDto found = cats.stream().filter(c -> "CATEGORY".equals(c.getType())).findFirst().orElse(null);
             return new SimpleObjectProperty<>(found);
         });
-        colItemCategory.setCellFactory(ComboBoxTableCell.forTableColumn(categories));
-        colItemCategory.setOnEditCommit(event -> {
-            Set<CategoryDto> cats = event.getRowValue().getArticle().getCategories();
-            if (cats == null) {
-                cats = new HashSet<>();
-                event.getRowValue().getArticle().setCategories(cats);
+        colItemCategory.setCellFactory(param -> new TableCell<LigneBonCommandeDto, CategoryDto>() {
+            private final ComboBox<CategoryDto> comboBox = new ComboBox<>(categories);
+            private boolean updating = false;
+
+            {
+                comboBox.setPromptText("Sélectionner...");
+                comboBox.setMaxWidth(Double.MAX_VALUE);
+                comboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+                    if (updating) return;
+                    LigneBonCommandeDto rowData = getTableRow() != null ? getTableRow().getItem() : null;
+                    if (rowData != null && rowData.getArticle() != null) {
+                        Set<CategoryDto> cats = rowData.getArticle().getCategories();
+                        if (cats == null) {
+                            cats = new HashSet<>();
+                            rowData.getArticle().setCategories(cats);
+                        }
+                        cats.removeIf(c -> "CATEGORY".equals(c.getType()));
+                        if (newVal != null) cats.add(newVal);
+                    }
+                });
             }
-            cats.removeIf(c -> "CATEGORY".equals(c.getType()));
-            if (event.getNewValue() != null) cats.add(event.getNewValue());
+
+            @Override
+            protected void updateItem(CategoryDto item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    updating = true;
+                    comboBox.setValue(item);
+                    updating = false;
+                    setGraphic(comboBox);
+                }
+            }
         });
 
         colItemFormat.setCellValueFactory(cellData -> {
@@ -182,38 +325,127 @@ public class BonCommandeListController {
             CategoryDto found = cats.stream().filter(c -> "FORMAT".equals(c.getType())).findFirst().orElse(null);
             return new SimpleObjectProperty<>(found);
         });
-        colItemFormat.setCellFactory(ComboBoxTableCell.forTableColumn(formats));
-        colItemFormat.setOnEditCommit(event -> {
-            Set<CategoryDto> cats = event.getRowValue().getArticle().getCategories();
-            if (cats == null) {
-                cats = new HashSet<>();
-                event.getRowValue().getArticle().setCategories(cats);
+        colItemFormat.setCellFactory(param -> new TableCell<LigneBonCommandeDto, CategoryDto>() {
+            private final ComboBox<CategoryDto> comboBox = new ComboBox<>(formats);
+            private boolean updating = false;
+
+            {
+                comboBox.setPromptText("Sélectionner...");
+                comboBox.setMaxWidth(Double.MAX_VALUE);
+                comboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+                    if (updating) return;
+                    LigneBonCommandeDto rowData = getTableRow() != null ? getTableRow().getItem() : null;
+                    if (rowData != null && rowData.getArticle() != null) {
+                        Set<CategoryDto> cats = rowData.getArticle().getCategories();
+                        if (cats == null) {
+                            cats = new HashSet<>();
+                            rowData.getArticle().setCategories(cats);
+                        }
+                        cats.removeIf(c -> "FORMAT".equals(c.getType()));
+                        if (newVal != null) cats.add(newVal);
+                    }
+                });
             }
-            cats.removeIf(c -> "FORMAT".equals(c.getType()));
-            if (event.getNewValue() != null) cats.add(event.getNewValue());
+
+            @Override
+            protected void updateItem(CategoryDto item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    updating = true;
+                    comboBox.setValue(item);
+                    updating = false;
+                    setGraphic(comboBox);
+                }
+            }
         });
     }
 
-    private void toggleInventory(LigneBonCommandeDto ligne, boolean needsInv) {
+    private void toggleInventory(LigneBonCommandeDto targetLigne, boolean needsInv) {
         if (needsInv) {
-            if (ligne.getArticle().getAvailableInventoryNumbers() == null || ligne.getArticle().getAvailableInventoryNumbers().isEmpty()) {
-                int qty = ligne.getQuantiteCommandee();
-                List<String> newInvs = new ArrayList<>();
-                for (int i = 0; i < qty; i++) {
-                    newInvs.add(sequenceDao.getNextInventoryNumber());
-                }
-                ligne.getArticle().setAvailableInventoryNumbers(newInvs);
+            if (targetLigne.getArticle().getAvailableInventoryNumbers() == null) {
+                targetLigne.getArticle().setAvailableInventoryNumbers(new ArrayList<>());
+            }
+            if (targetLigne.getArticle().getAvailableInventoryNumbers().isEmpty()) {
+                // Temporary dummy element so it is recognized as checked for our redistribution
+                targetLigne.getArticle().getAvailableInventoryNumbers().add("TEMP");
             }
         } else {
-            if (ligne.getArticle().getAvailableInventoryNumbers() != null) {
-                ligne.getArticle().getAvailableInventoryNumbers().clear();
+            if (targetLigne.getArticle().getAvailableInventoryNumbers() != null) {
+                targetLigne.getArticle().getAvailableInventoryNumbers().clear();
             }
         }
+
+        // Recalculate and redistribute inventory numbers for all checked articles
+        List<LigneBonCommandeDto> checkedLines = new ArrayList<>();
+        int totalQtyNeeded = 0;
+        for (LigneBonCommandeDto line : detailsTable.getItems()) {
+            if (line.getArticle().getAvailableInventoryNumbers() != null && !line.getArticle().getAvailableInventoryNumbers().isEmpty()) {
+                checkedLines.add(line);
+                totalQtyNeeded += line.getQuantiteCommandee();
+            }
+        }
+
+        // If we need more sequence values than currently allocated, fetch them
+        int diff = totalQtyNeeded - sessionAllocatedNumbers.size();
+        for (int i = 0; i < diff; i++) {
+            sessionAllocatedNumbers.add(sequenceDao.getNextInventoryNumber());
+        }
+
+        // Sort the numbers to make sure they are in order
+        sessionAllocatedNumbers.sort((a, b) -> {
+            try {
+                return Long.compare(Long.parseLong(a), Long.parseLong(b));
+            } catch (NumberFormatException e) {
+                return a.compareTo(b);
+            }
+        });
+
+        // Distribute the numbers sequentially to all checked lines
+        int index = 0;
+        for (LigneBonCommandeDto line : checkedLines) {
+            int qty = line.getQuantiteCommandee();
+            List<String> subList = new ArrayList<>();
+            for (int i = 0; i < qty; i++) {
+                if (index < sessionAllocatedNumbers.size()) {
+                    subList.add(sessionAllocatedNumbers.get(index++));
+                }
+            }
+            line.getArticle().setAvailableInventoryNumbers(subList);
+        }
+
+        // Clear any remaining unchecked lines
+        for (LigneBonCommandeDto line : detailsTable.getItems()) {
+            if (!checkedLines.contains(line)) {
+                if (line.getArticle().getAvailableInventoryNumbers() != null) {
+                    line.getArticle().getAvailableInventoryNumbers().clear();
+                }
+            }
+        }
+
         detailsTable.refresh();
     }
 
     private void loadDetails(BonCommandeDto bc) {
         if (bc.getLignes() != null) {
+            sessionAllocatedNumbers.clear();
+            for (LigneBonCommandeDto ligne : bc.getLignes()) {
+                if (ligne.getArticle() != null && ligne.getArticle().getAvailableInventoryNumbers() != null) {
+                    for (String inv : ligne.getArticle().getAvailableInventoryNumbers()) {
+                        if (inv != null && !inv.trim().isEmpty() && !sessionAllocatedNumbers.contains(inv)) {
+                            sessionAllocatedNumbers.add(inv);
+                        }
+                    }
+                }
+            }
+            sessionAllocatedNumbers.sort((a, b) -> {
+                try {
+                    return Long.compare(Long.parseLong(a), Long.parseLong(b));
+                } catch (NumberFormatException e) {
+                    return a.compareTo(b);
+                }
+            });
             detailsTable.setItems(FXCollections.observableArrayList(bc.getLignes()));
             detailsContainer.setVisible(true);
             detailsContainer.setManaged(true);
@@ -278,5 +510,13 @@ public class BonCommandeListController {
                 RootController.instance.showCartMaterial();
             }
         }
+    }
+
+    private int calculateRowCount(String text) {
+        if (text == null || text.isEmpty()) return 1;
+        int explicitLines = text.split("\r\n|\r|\n", -1).length;
+        int estimatedLines = (int) Math.ceil((double) text.length() / 45.0);
+        int lines = Math.max(explicitLines, estimatedLines);
+        return Math.min(4, Math.max(1, lines));
     }
 }

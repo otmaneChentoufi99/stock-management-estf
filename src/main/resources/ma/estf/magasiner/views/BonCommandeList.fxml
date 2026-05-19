@@ -27,8 +27,8 @@
         </HBox>
         <TableView fx:id="detailsTable" VBox.vgrow="ALWAYS" editable="true">
             <columns>
-                <TableColumn fx:id="colItemDesignation" text="Désignation" prefWidth="200"/>
-                <TableColumn fx:id="colItemCaracteristique" text="Caractéristique" prefWidth="150"/>
+                <TableColumn fx:id="colItemDesignation" text="Désignation" prefWidth="450"/>
+                <TableColumn fx:id="colItemCaracteristique" text="Caractéristique" prefWidth="250"/>
                 <TableColumn fx:id="colItemQty" text="Quantité" prefWidth="70"/>
                 <TableColumn fx:id="colItemPrice" text="Prix Unit." prefWidth="80"/>
                 <TableColumn fx:id="colItemInvCheck" text="Inventaire ?" prefWidth="90"/>

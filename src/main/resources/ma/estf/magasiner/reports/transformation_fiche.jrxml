@@ -337,7 +337,7 @@
             </staticText>
 
             <rectangle>
-                <reportElement x="30" y="760" width="535" height="40"
+                <reportElement x="30" y="760" width="535" height="70"
                                mode="Transparent"/>
                 <graphicElement>
                     <pen lineWidth="1"/>

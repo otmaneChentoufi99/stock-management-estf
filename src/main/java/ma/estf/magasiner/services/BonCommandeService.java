@@ -290,6 +290,12 @@ public class BonCommandeService {
         }
 
         String numeroBC = data.getNumero();
+        if (numeroBC == null || numeroBC.trim().isEmpty()) {
+            throw new Exception("Le numéro du bon de commande est introuvable ou vide.");
+        }
+        if (bonCommandeDao.existsByNumero(numeroBC.trim())) {
+            throw new Exception("Le bon de commande N° " + numeroBC + " existe déjà.");
+        }
         String serviceDemandeur = data.getServiceDemandeur();
         String fournisseur = data.getFournisseur();
         List<ParsedArticleItem> items = data.getItems();

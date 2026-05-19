@@ -59,17 +59,17 @@ public class ImportCSVController {
         
         // Custom Cell Factory for Designation to commit on focus loss
         colDesignation.setCellFactory(column -> new TableCell<>() {
-            private TextField textField;
+            private TextArea textArea;
 
             @Override
             public void startEdit() {
                 if (!isEmpty()) {
                     super.startEdit();
-                    createTextField();
+                    createTextArea();
                     setText(null);
-                    setGraphic(textField);
-                    textField.selectAll();
-                    textField.requestFocus();
+                    setGraphic(textArea);
+                    textArea.selectAll();
+                    textArea.requestFocus();
                 }
             }
 
@@ -88,28 +88,33 @@ public class ImportCSVController {
                     setGraphic(null);
                 } else {
                     if (isEditing()) {
-                        if (textField != null) {
-                            textField.setText(getString());
+                        if (textArea != null) {
+                            textArea.setText(getString());
                         }
                         setText(null);
-                        setGraphic(textField);
+                        setGraphic(textArea);
                     } else {
                         setText(getString());
                         setGraphic(null);
+                        setWrapText(true);
                     }
                 }
             }
 
-            private void createTextField() {
-                textField = new TextField(getString());
-                textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
-                textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            private void createTextArea() {
+                textArea = new TextArea(getString());
+                textArea.setWrapText(true);
+                textArea.setPrefRowCount(calculateRowCount(getString()));
+                textArea.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
+                textArea.textProperty().addListener((obs, oldVal, newVal) -> {
+                    textArea.setPrefRowCount(calculateRowCount(newVal));
+                });
+                textArea.focusedProperty().addListener((obs, oldVal, newVal) -> {
                     if (!newVal) {
-                        commitEdit(textField.getText());
+                        commitEdit(textArea.getText());
                     }
                 });
-                textField.setOnAction(event -> commitEdit(textField.getText()));
-                textField.setOnKeyPressed(event -> {
+                textArea.setOnKeyPressed(event -> {
                     if (event.getCode() == KeyCode.ESCAPE) {
                         cancelEdit();
                     }
@@ -139,83 +144,98 @@ public class ImportCSVController {
 
         colCategory.setCellValueFactory(cellData ->
                 cellData.getValue().categoryProperty());
-        colCategory.setCellFactory(ComboBoxTableCell.forTableColumn(categoriesOnly));
+        colCategory.setCellFactory(param -> new TableCell<ParsedArticleItem, CategoryDto>() {
+            private final ComboBox<CategoryDto> comboBox = new ComboBox<>(categoriesOnly);
+            private boolean updating = false;
+
+            {
+                comboBox.setPromptText("Sélectionner...");
+                comboBox.setMaxWidth(Double.MAX_VALUE);
+                comboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+                    if (updating) return;
+                    ParsedArticleItem item = getTableRow() != null ? getTableRow().getItem() : null;
+                    if (item != null) {
+                        item.setCategory(newVal);
+                    }
+                });
+            }
+
+            @Override
+            protected void updateItem(CategoryDto item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    updating = true;
+                    comboBox.setValue(item);
+                    updating = false;
+                    setGraphic(comboBox);
+                }
+            }
+        });
 
         colFormat.setCellValueFactory(cellData ->
                 cellData.getValue().formatProperty());
-        colFormat.setCellFactory(ComboBoxTableCell.forTableColumn(formatsOnly));
+        colFormat.setCellFactory(param -> new TableCell<ParsedArticleItem, CategoryDto>() {
+            private final ComboBox<CategoryDto> comboBox = new ComboBox<>(formatsOnly);
+            private boolean updating = false;
+
+            {
+                comboBox.setPromptText("Sélectionner...");
+                comboBox.setMaxWidth(Double.MAX_VALUE);
+                comboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+                    if (updating) return;
+                    ParsedArticleItem item = getTableRow() != null ? getTableRow().getItem() : null;
+                    if (item != null) {
+                        item.setFormat(newVal);
+                    }
+                });
+            }
+
+            @Override
+            protected void updateItem(CategoryDto item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    updating = true;
+                    comboBox.setValue(item);
+                    updating = false;
+                    setGraphic(comboBox);
+                }
+            }
+        });
 
         colCaracteristique.setCellValueFactory(cellData ->
                 cellData.getValue().caracteristiqueProperty());
+        colCaracteristique.setCellFactory(param -> new TableCell<ParsedArticleItem, String>() {
+            private final TextArea textArea = new TextArea();
+            private boolean updating = false;
 
-        // Robust Custom Cell Factory to commit on focus loss without requiring ENTER
-        colCaracteristique.setCellFactory(column -> new TableCell<>() {
-            private TextField textField;
-
-            @Override
-            public void startEdit() {
-                if (!isEmpty()) {
-                    super.startEdit();
-                    createTextField();
-                    setText(null);
-                    setGraphic(textField);
-                    textField.selectAll();
-                    textField.requestFocus();
-                }
+            {
+                textArea.setPromptText("Caractéristique...");
+                textArea.setWrapText(true);
+                textArea.textProperty().addListener((obs, oldVal, newVal) -> {
+                    textArea.setPrefRowCount(calculateRowCount(newVal));
+                    if (updating) return;
+                    ParsedArticleItem item = getTableRow() != null ? getTableRow().getItem() : null;
+                    if (item != null) {
+                        item.setCaracteristique(newVal != null ? newVal : "");
+                    }
+                });
             }
 
             @Override
-            public void cancelEdit() {
-                super.cancelEdit();
-                setText(getItem());
-                setGraphic(null);
-            }
-
-            @Override
-            public void updateItem(String item, boolean empty) {
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty) {
-                    setText(null);
                     setGraphic(null);
                 } else {
-                    if (isEditing()) {
-                        if (textField != null) {
-                            textField.setText(getString());
-                        }
-                        setText(null);
-                        setGraphic(textField);
-                    } else {
-                        setText(getString());
-                        setGraphic(null);
-                    }
-                }
-            }
-
-            private void createTextField() {
-                textField = new TextField(getString());
-                textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
-                textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
-                    if (!newVal) {
-                        commitEdit(textField.getText());
-                    }
-                });
-                textField.setOnAction(event -> commitEdit(textField.getText()));
-                textField.setOnKeyPressed(event -> {
-                    if (event.getCode() == KeyCode.ESCAPE) {
-                        cancelEdit();
-                    }
-                });
-            }
-
-            private String getString() {
-                return getItem() == null ? "" : getItem();
-            }
-
-            @Override
-            public void commitEdit(String newValue) {
-                super.commitEdit(newValue);
-                if (getTableRow() != null && getTableRow().getItem() != null) {
-                    getTableRow().getItem().setCaracteristique(newValue);
+                    updating = true;
+                    textArea.setText(item == null ? "" : item);
+                    textArea.setPrefRowCount(calculateRowCount(item));
+                    updating = false;
+                    setGraphic(textArea);
                 }
             }
         });
@@ -310,8 +330,6 @@ public class ImportCSVController {
                     int colIndex = pos.getColumn();
                     if (colIndex == articlesTable.getColumns().indexOf(colDesignation)) {
                         articlesTable.edit(pos.getRow(), colDesignation);
-                    } else if (colIndex == articlesTable.getColumns().indexOf(colCaracteristique)) {
-                        articlesTable.edit(pos.getRow(), colCaracteristique);
                     } else if (colIndex == articlesTable.getColumns().indexOf(colPrixUnit)) {
                         articlesTable.edit(pos.getRow(), colPrixUnit);
                     }
@@ -380,6 +398,28 @@ public class ImportCSVController {
             return;
         }
 
+        // Validation: Category and Format cannot be empty
+        for (ParsedArticleItem item : articlesTable.getItems()) {
+            if (item.getCategory() == null) {
+                setError("Validation échouée: Catégorie manquante pour l'article : " + item.getDesignation());
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Validation");
+                alert.setHeaderText("Catégorie manquante");
+                alert.setContentText("Veuillez sélectionner une catégorie pour l'article : " + item.getDesignation());
+                alert.showAndWait();
+                return;
+            }
+            if (item.getFormat() == null) {
+                setError("Validation échouée: Format manquant pour l'article : " + item.getDesignation());
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Validation");
+                alert.setHeaderText("Format manquant");
+                alert.setContentText("Veuillez sélectionner un format pour l'article : " + item.getDesignation());
+                alert.showAndWait();
+                return;
+            }
+        }
+
         try {
             service.saveBonCommande(parsedData);
 
@@ -415,5 +455,13 @@ public class ImportCSVController {
     private void setSuccess(String msg) {
         statusLabel.setStyle("-fx-text-fill: green;");
         statusLabel.setText(msg);
+    }
+
+    private int calculateRowCount(String text) {
+        if (text == null || text.isEmpty()) return 1;
+        int explicitLines = text.split("\r\n|\r|\n", -1).length;
+        int estimatedLines = (int) Math.ceil((double) text.length() / 45.0);
+        int lines = Math.max(explicitLines, estimatedLines);
+        return Math.min(4, Math.max(1, lines));
     }
 }
