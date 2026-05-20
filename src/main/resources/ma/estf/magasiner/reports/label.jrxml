@@ -21,6 +21,7 @@
     <parameter name="designation" class="java.lang.String"/>
     <parameter name="date" class="java.lang.String"/>
     <parameter name="year" class="java.lang.String"/>
+    <parameter name="fullYear" class="java.lang.String"/>
     <parameter name="bc" class="java.lang.String"/>
     <parameter name="fournisseur" class="java.lang.String"/>
     <parameter name="affectation" class="java.lang.String"/>
@@ -37,7 +38,8 @@
             <staticText>
                 <reportElement x="0" y="2" width="108" height="14"/>
                 <textElement textAlignment="Center">
-                    <font fontName="Arial" size="12" isBold="true"/>                </textElement>
+                    <font fontName="Arial" size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[ESTF]]></text>
             </staticText>
 
@@ -59,7 +61,7 @@
                     <font size="6"/>
                 </textElement>
                 <textFieldExpression><![CDATA[
-                "BC : " + $P{bc}
+                "BC : N°" + $P{bc} + "/INV/" + $P{fullYear}
                 + "\nFournisseur : " + $P{fournisseur}
                 + "\nAffectation : " + $P{affectation}
             ]]></textFieldExpression>

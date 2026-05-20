@@ -37,6 +37,8 @@ public class BonCommandeListController {
     @FXML
     private TableColumn<BonCommandeDto, String> fournissuer;
     @FXML
+    private TableColumn<BonCommandeDto, String> colExercice;
+    @FXML
     private TableColumn<BonCommandeDto, String> colDate;
     @FXML
     private TableColumn<BonCommandeDto, String> colStatut;
@@ -65,6 +67,7 @@ public class BonCommandeListController {
     public void initialize() {
         colNumero.setCellValueFactory(new PropertyValueFactory<>("numero"));
         fournissuer.setCellValueFactory(new PropertyValueFactory<>("fournisseur"));
+        colExercice.setCellValueFactory(new PropertyValueFactory<>("exercice"));
         colDate.setCellValueFactory(new PropertyValueFactory<>("dateBC"));
         colStatut.setCellValueFactory(new PropertyValueFactory<>("statut"));
 

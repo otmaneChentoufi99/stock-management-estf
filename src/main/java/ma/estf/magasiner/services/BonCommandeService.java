@@ -40,6 +40,7 @@ public class BonCommandeService {
 
         String numero = null;
         String fournisseur = null;
+        String exercice = null;
 
         try (FileInputStream fis = new FileInputStream(filePath);
              Workbook workbook = new XSSFWorkbook(fis)) {
@@ -73,6 +74,13 @@ public class BonCommandeService {
                         // ========================
                         if (fournisseur == null && val.contains("FOURNISSEUR")) {
                             fournisseur = extractFournisseur(row);
+                        }
+
+                        // ========================
+                        // 🔍 Extract EXERCICE
+                        // ========================
+                        if (exercice == null && (val.contains("EXERCICE") || val.contains("EXRCICE"))) {
+                            exercice = extractExercice(row);
                         }
 
                         // ========================
@@ -137,6 +145,7 @@ public class BonCommandeService {
         return ParsedBonCommande.builder()
                 .numero(numero)
                 .fournisseur(fournisseur)
+                .exercice(exercice)
                 .items(items)
                 .build();
     }
@@ -182,6 +191,44 @@ public class BonCommandeService {
                     // Case 2: value in next cells
                     String next = getNextNonEmptyCell(row, cell.getColumnIndex());
                     if (next != null) return next;
+                }
+            }
+        }
+        return null;
+    }
+
+    private String extractExercice(Row row) {
+        for (Cell cell : row) {
+            String val = "";
+            if (cell.getCellType() == CellType.STRING) {
+                val = cell.getStringCellValue().trim();
+            } else if (cell.getCellType() == CellType.NUMERIC) {
+                val = String.valueOf((int) cell.getNumericCellValue()).trim();
+            } else {
+                continue;
+            }
+
+            String upper = val.toUpperCase();
+            if (upper.contains("EXERCICE") || upper.contains("EXRCICE")) {
+                // Case 1: "Exercice : 2025" or "Exrcice: 2025"
+                if (val.contains(":")) {
+                    String[] parts = val.split(":");
+                    if (parts.length > 1 && !parts[1].trim().isEmpty()) {
+                        String res = parts[1].trim();
+                        if (res.endsWith(".0")) {
+                            res = res.substring(0, res.length() - 2);
+                        }
+                        return res;
+                    }
+                }
+
+                // Case 2: value in next cells
+                String next = getNextNonEmptyCell(row, cell.getColumnIndex());
+                if (next != null) {
+                    if (next.endsWith(".0")) {
+                        next = next.substring(0, next.length() - 2);
+                    }
+                    return next;
                 }
             }
         }
@@ -298,6 +345,7 @@ public class BonCommandeService {
         }
         String serviceDemandeur = data.getServiceDemandeur();
         String fournisseur = data.getFournisseur();
+        String exercice = data.getExercice();
         List<ParsedArticleItem> items = data.getItems();
 
         BonCommande bc = BonCommande.builder()
@@ -305,6 +353,7 @@ public class BonCommandeService {
                 .dateBC(LocalDate.now().toString())
                 .serviceDemandeur(serviceDemandeur)
                 .fournisseur(fournisseur)
+                .exercice(exercice)
                 .statut("Reçu")
                 .lignes(new ArrayList<>())
                 .build();

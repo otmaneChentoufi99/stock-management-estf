@@ -16,4 +16,13 @@ public class BonCommandeDao extends GenericDaoImpl<BonCommande, Long> {
             return count != null && count > 0;
         }
     }
+
+    public BonCommande findByNumero(String numero) {
+        if (numero == null) return null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from BonCommande b where b.numero = :numero", BonCommande.class)
+                    .setParameter("numero", numero)
+                    .uniqueResult();
+        }
+    }
 }

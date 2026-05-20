@@ -8,6 +8,7 @@ import ma.estf.magasiner.models.entity.Affectation;
 import ma.estf.magasiner.models.entity.AffectationItem;
 import ma.estf.magasiner.models.entity.Article;
 import ma.estf.magasiner.models.entity.BonCommande;
+import ma.estf.magasiner.dao.BonCommandeDao;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
@@ -363,20 +364,50 @@ public class JasperReportService {
         int labelCount = 0;
         JasperPrint mainPrint = null;
 
+        BonCommandeDao bcDao = new BonCommandeDao();
+
         for (AffectationItem item : affectation.getItems()) {
             if (item.getInventoryNumber() == null || item.getInventoryNumber().isEmpty() || item.getInventoryNumber().equals("-")) continue;
 
             Map<String, Object> parameters = new HashMap<>();
             parameters.put("inventoryNumber", item.getInventoryNumber());
             parameters.put("designation", item.getArticle().getName());
-            parameters.put("date", dateStr);
-            String yearStr = String.valueOf(affectation.getDate().getYear()).substring(2);
+
+            // Fetch Exercice from BonCommande
+            String bcNumero = item.getBcNumero();
+            String exerciceVal = null;
+            if (bcNumero != null && !bcNumero.trim().isEmpty() && !"-".equals(bcNumero)) {
+                BonCommande bcEntity = bcDao.findByNumero(bcNumero.trim());
+                if (bcEntity != null) {
+                    exerciceVal = bcEntity.getExercice();
+                }
+            }
+
+            String yearStr;
+            String fullYearStr;
+            String dateVal;
+            if (exerciceVal != null && !exerciceVal.trim().isEmpty()) {
+                dateVal = exerciceVal.trim();
+                String cleanExercice = exerciceVal.trim();
+                if (cleanExercice.length() >= 2) {
+                    yearStr = cleanExercice.substring(cleanExercice.length() - 2);
+                } else {
+                    yearStr = cleanExercice;
+                }
+                fullYearStr = cleanExercice;
+            } else {
+                dateVal = dateStr;
+                yearStr = String.valueOf(affectation.getDate().getYear()).substring(2);
+                fullYearStr = String.valueOf(affectation.getDate().getYear());
+            }
+
+            String affectationName = affectation.getDepartment() != null ? affectation.getDepartment().getName() : "";
+
+            parameters.put("date", dateVal);
             parameters.put("year", yearStr);
+            parameters.put("fullYear", fullYearStr);
             parameters.put("bc", item.getBcNumero() != null ? item.getBcNumero() : "-");
             parameters.put("fournisseur", item.getFournisseur() != null ? item.getFournisseur() : "-");
-            
-            // Extract Department for Affectation
-            String affectationName = affectation.getDepartment() != null ? affectation.getDepartment().getName() : "";
             parameters.put("affectation", affectationName);
 
             // Generate QR Code

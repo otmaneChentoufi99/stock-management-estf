@@ -13,6 +13,7 @@ public class BonCommandeMapper {
                 .dateBC(entity.getDateBC())
                 .serviceDemandeur(entity.getServiceDemandeur())
                 .fournisseur(entity.getFournisseur())
+                .exercice(entity.getExercice())
                 .statut(entity.getStatut())
                 .lignes(entity.getLignes() != null ? 
                         entity.getLignes().stream().map(LigneBonCommandeMapper::toDto).collect(Collectors.toList()) : null)
@@ -27,6 +28,7 @@ public class BonCommandeMapper {
                 .dateBC(dto.getDateBC())
                 .serviceDemandeur(dto.getServiceDemandeur())
                 .fournisseur(dto.getFournisseur())
+                .exercice(dto.getExercice())
                 .statut(dto.getStatut())
                 .lignes(dto.getLignes() != null ? 
                         dto.getLignes().stream().map(LigneBonCommandeMapper::toEntity).collect(Collectors.toList()) : null)
