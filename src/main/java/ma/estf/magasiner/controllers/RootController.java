@@ -12,6 +12,8 @@ public class RootController {
 
     @FXML
     public void initialize() {
+
+        this.showDashboard();
         instance = this;
     }
 
@@ -38,11 +40,19 @@ public class RootController {
 
     public void showAffectationManage(ma.estf.magasiner.models.dto.AffectationDto aff) {
         try {
-            FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("/ma/estf/magasiner/views/AffectationManage.fxml"));
-            Node node = loader.load();
-            AffectationManageController controller = loader.getController();
-            controller.setAffectation(aff);
-            contentArea.getChildren().setAll(node);
+            if ("CONSOMMABLE".equals(aff.getCategory())) {
+                FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("/ma/estf/magasiner/views/AffectationConsumableManage.fxml"));
+                Node node = loader.load();
+                AffectationConsumableManageController controller = loader.getController();
+                controller.setAffectation(aff);
+                contentArea.getChildren().setAll(node);
+            } else {
+                FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("/ma/estf/magasiner/views/AffectationManage.fxml"));
+                Node node = loader.load();
+                AffectationManageController controller = loader.getController();
+                controller.setAffectation(aff);
+                contentArea.getChildren().setAll(node);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
