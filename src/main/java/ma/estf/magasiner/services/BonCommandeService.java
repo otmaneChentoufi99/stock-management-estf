@@ -45,7 +45,18 @@ public class BonCommandeService {
         try (FileInputStream fis = new FileInputStream(filePath);
              Workbook workbook = new XSSFWorkbook(fis)) {
 
-            Sheet sheet = workbook.getSheetAt(0);
+            Sheet sheet = null;
+            // Search for sheet named "B.R" or similar, fallback to sheet index 0
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                String name = workbook.getSheetName(i).toUpperCase().trim();
+                if (name.equals("B.R") || name.contains("RECEPTION") || name.equals("BR")) {
+                    sheet = workbook.getSheetAt(i);
+                    break;
+                }
+            }
+            if (sheet == null) {
+                sheet = workbook.getSheetAt(0);
+            }
 
             boolean inTable = false;
             int qteColIndex = -1;
@@ -63,16 +74,19 @@ public class BonCommandeService {
                         String val = raw.trim().toUpperCase();
 
                         // ========================
-                        // 🔍 Extract NUMERO BC
+                        // 🔍 Extract NUMERO BC / REFERENCE
                         // ========================
-                        if (numero == null && (val.contains("BON DE COMMANDE") )) {
+                        if (numero == null && (val.contains("BON DE COMMANDE") || val.contains("BC") || 
+                            val.contains("REFERENCE") || val.contains("RÉFERENCE") || 
+                            val.contains("RÉFÉRENCE") || val.contains("RÉF"))) {
                             numero = extractNumeroBC(row);
                         }
 
                         // ========================
                         // 🔍 Extract FOURNISSEUR
                         // ========================
-                        if (fournisseur == null && val.contains("FOURNISSEUR")) {
+                        if (fournisseur == null && (val.contains("FOURNISSEUR") || 
+                            val.contains("DÉNOMINATION") || val.contains("DENOMINATION"))) {
                             fournisseur = extractFournisseur(row);
                         }
 
@@ -94,7 +108,8 @@ public class BonCommandeService {
                                 qteColIndex = cell.getColumnIndex();
                             }
                             // Check for price column using multiple possible patterns
-                            if (val.contains("PRIX.U HT") ) {
+                            if (val.contains("PRIX.U HT") || val.contains("P.U H.T") || 
+                                val.contains("P.U. HT") || val.contains("P.U")) {
                                     priceColIndex = cell.getColumnIndex();
                             }
                         }
@@ -136,6 +151,11 @@ public class BonCommandeService {
                     items.add(item);
                 }
             }
+
+            // Fallback for exercice extraction if not explicitly found in standard cells
+            if (exercice == null) {
+                exercice = extractExerciceFallback(sheet, numero);
+            }
         }
 
         if (items.isEmpty()) {
@@ -149,15 +169,45 @@ public class BonCommandeService {
                 .items(items)
                 .build();
     }
+
     private String extractNumeroBC(Row row) {
         for (Cell cell : row) {
             if (cell.getCellType() == CellType.STRING) {
-                String text = cell.getStringCellValue().trim().toUpperCase();
+                String text = cell.getStringCellValue().trim();
+                String upper = text.toUpperCase();
 
-                if (text.contains("BON DE COMMANDE") || text.contains("BC")) {
+                if (upper.contains("BON DE COMMANDE") || upper.contains("BC") || 
+                    upper.contains("RÉFERENCE") || upper.contains("REFERENCE") || 
+                    upper.contains("RÉFÉRENCE") || upper.contains("RÉF")) {
 
-                    // Case 1: "BON DE COMMANDE N°2"
-                    String digits = text.replaceAll("[^0-9]", "");
+                    // Try to find a pattern like "N°", "N:", "N ", "Réference", etc.
+                    int index = upper.indexOf("N°");
+                    if (index == -1) index = upper.indexOf("N :");
+                    if (index == -1) index = upper.indexOf("N:");
+                    if (index == -1) index = upper.indexOf("RÉFERENCE");
+                    if (index == -1) index = upper.indexOf("REFERENCE");
+                    if (index == -1) index = upper.indexOf("RÉFÉRENCE");
+                    if (index == -1) index = upper.indexOf("RÉF");
+
+                    if (index != -1) {
+                        int colonIndex = text.indexOf(":", index);
+                        int startOffset = (colonIndex != -1) ? colonIndex + 1 : index + 2;
+                        
+                        if (startOffset < text.length()) {
+                            String num = text.substring(startOffset).trim();
+                            // remove leading separators
+                            while (!num.isEmpty() && (num.startsWith(":") || num.startsWith(".") || 
+                                   num.startsWith("-") || num.startsWith("°") || num.startsWith(" "))) {
+                                num = num.substring(1).trim();
+                            }
+                            if (!num.isEmpty()) {
+                                return num;
+                            }
+                        }
+                    }
+
+                    // Case 1: digits extraction
+                    String digits = upper.replaceAll("[^0-9]", "");
                     if (!digits.isEmpty()) {
                         return digits;
                     }
@@ -178,13 +228,19 @@ public class BonCommandeService {
                 String raw = cell.getStringCellValue().trim();
                 String upper = raw.toUpperCase();
 
-                if (upper.contains("FOURNISSEUR")) {
+                if (upper.contains("FOURNISSEUR") || upper.contains("DÉNOMINATION OU IDENTITÉ") || 
+                    upper.contains("DENOMINATION OU IDENTITE")) {
 
-                    // Case 1: "Fournisseur : SMART LEVEL"
-                    if (raw.contains(":")) {
-                        String[] parts = raw.split(":");
-                        if (parts.length > 1 && !parts[1].trim().isEmpty()) {
-                            return parts[1].trim();
+                    int colonIndex = raw.indexOf(":");
+                    if (colonIndex != -1) {
+                        String supplierPart = raw.substring(colonIndex + 1).trim();
+                        // remove trailing details like "- Tél : ..." if present
+                        int dashIndex = supplierPart.indexOf("-");
+                        if (dashIndex != -1) {
+                            supplierPart = supplierPart.substring(0, dashIndex).trim();
+                        }
+                        if (!supplierPart.isEmpty()) {
+                            return supplierPart;
                         }
                     }
 
@@ -234,6 +290,27 @@ public class BonCommandeService {
         }
         return null;
     }
+
+    private String extractExerciceFallback(Sheet sheet, String numero) {
+        if (numero != null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(20[2-3][0-9])").matcher(numero);
+            if (m.find()) {
+                return m.group(1);
+            }
+        }
+        for (int r = 0; r < Math.min(25, sheet.getPhysicalNumberOfRows()); r++) {
+            Row row = sheet.getRow(r);
+            if (row == null) continue;
+            for (Cell cell : row) {
+                String val = cell.toString();
+                java.util.regex.Matcher m = java.util.regex.Pattern.compile("(20[2-3][0-9])").matcher(val);
+                if (m.find()) {
+                    return m.group(1);
+                }
+            }
+        }
+        return null;
+    }
     private String getNextNonEmptyCell(Row row, int startIndex) {
         for (int i = startIndex + 1; i < startIndex + 6; i++) {
             Cell cell = row.getCell(i);
@@ -267,9 +344,21 @@ public class BonCommandeService {
     private String getStringCellValue(Cell cell) {
         if (cell == null) return null;
 
-        return switch (cell.getCellType()) {
+        CellType type = cell.getCellType();
+        if (type == CellType.FORMULA) {
+            type = cell.getCachedFormulaResultType();
+        }
+
+        return switch (type) {
             case STRING -> cell.getStringCellValue().trim();
-            case NUMERIC -> String.valueOf((int) cell.getNumericCellValue());
+            case NUMERIC -> {
+                double val = cell.getNumericCellValue();
+                if (val == (long) val) {
+                    yield String.valueOf((long) val);
+                } else {
+                    yield String.valueOf(val);
+                }
+            }
             default -> null;
         };
     }
@@ -317,7 +406,12 @@ public class BonCommandeService {
     private int getNumericCellValue(Cell cell) {
         if (cell == null) return 0;
 
-        switch (cell.getCellType()) {
+        CellType type = cell.getCellType();
+        if (type == CellType.FORMULA) {
+            type = cell.getCachedFormulaResultType();
+        }
+
+        switch (type) {
             case NUMERIC:
                 return (int) cell.getNumericCellValue();
             case STRING:
