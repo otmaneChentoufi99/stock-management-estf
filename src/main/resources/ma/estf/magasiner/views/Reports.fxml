@@ -5,10 +5,11 @@
 <?import javafx.scene.chart.*?>
 <?import javafx.geometry.Insets?>
 
-<TabPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-         fx:controller="ma.estf.magasiner.controllers.ReportsController"
-         tabClosingPolicy="UNAVAILABLE"
-         style="-fx-background-color: #f8f9fa;">
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+           fx:controller="ma.estf.magasiner.controllers.ReportsController"
+           style="-fx-background-color: #f8f9fa;">
+         
+    <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" style="-fx-background-color: transparent;">
          
     <!-- TAB 1: DASHBOARD & STATS -->
     <Tab text="Tableau de Bord &amp; Stats">
@@ -95,6 +96,16 @@
                     <Label text="Type de rapport" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
                     <ComboBox fx:id="reportTypeCombo" prefWidth="200" />
                 </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Catégorie" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    <ComboBox fx:id="filterCategoryCombo" prefWidth="180" />
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Format" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    <ComboBox fx:id="filterFormatCombo" prefWidth="180" />
+                </VBox>
                 
                 <VBox fx:id="dateRangeContainer" spacing="5">
                     <HBox spacing="10" alignment="CENTER_LEFT">
@@ -137,4 +148,10 @@
             </HBox>
         </VBox>
     </Tab>
-</TabPane>
+    </TabPane>
+
+    <!-- Overlay loading pane -->
+    <StackPane fx:id="loadingOverlay" visible="false" style="-fx-background-color: rgba(255, 255, 255, 0.75);">
+        <ProgressIndicator maxHeight="60" maxWidth="60" />
+    </StackPane>
+</StackPane>

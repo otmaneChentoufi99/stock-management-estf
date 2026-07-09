@@ -16,4 +16,12 @@ public class MovementDao extends GenericDaoImpl<Movement, Long> {
                     .list();
         }
     }
+
+    public List<Movement> findRecentMovements(java.time.LocalDateTime limitDate) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from Movement m join fetch m.article where m.date >= :limitDate order by m.date asc", Movement.class)
+                    .setParameter("limitDate", limitDate)
+                    .list();
+        }
+    }
 }

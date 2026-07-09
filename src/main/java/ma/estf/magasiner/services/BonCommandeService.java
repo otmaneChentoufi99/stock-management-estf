@@ -5,12 +5,18 @@ import java.util.List;
 import ma.estf.magasiner.dao.ArticleDao;
 import ma.estf.magasiner.dao.BonCommandeDao;
 import ma.estf.magasiner.dao.SequenceDao;
+import ma.estf.magasiner.dao.HibernateUtil;
 import ma.estf.magasiner.models.entity.Article;
 import ma.estf.magasiner.models.entity.BonCommande;
 import ma.estf.magasiner.models.entity.LigneBonCommande;
+import ma.estf.magasiner.models.entity.Category;
 
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -425,7 +431,6 @@ public class BonCommandeService {
         }
     }
     public void saveBonCommande(ParsedBonCommande data) throws Exception {
-
         if (data == null || data.getItems() == null || data.getItems().isEmpty()) {
             throw new Exception("Aucune donnée à enregistrer.");
         }
@@ -442,67 +447,82 @@ public class BonCommandeService {
         String exercice = data.getExercice();
         List<ParsedArticleItem> items = data.getItems();
 
-        BonCommande bc = BonCommande.builder()
-                .numero(numeroBC)
-                .dateBC(LocalDate.now().toString())
-                .serviceDemandeur(serviceDemandeur)
-                .fournisseur(fournisseur)
-                .exercice(exercice)
-                .statut("Reçu")
-                .lignes(new ArrayList<>())
-                .build();
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
 
-        for (ParsedArticleItem item : items) {
+            BonCommande bc = BonCommande.builder()
+                    .numero(numeroBC)
+                    .dateBC(LocalDate.now().toString())
+                    .serviceDemandeur(serviceDemandeur)
+                    .fournisseur(fournisseur)
+                    .exercice(exercice)
+                    .statut("Reçu")
+                    .lignes(new ArrayList<>())
+                    .build();
 
-            String ref = "REF-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1000);
+            SequenceDao sequenceDao = new SequenceDao();
 
-            List<String> invNumbers = new ArrayList<>();
+            for (ParsedArticleItem item : items) {
+                String ref = "REF-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1000);
 
-            if (item.isNeedsInventoryNumber() && item.getQuantity() > 0) {
-                SequenceDao sequenceDao = new SequenceDao();
+                List<String> invNumbers = new ArrayList<>();
 
-                for (int i = 0; i < item.getQuantity(); i++) {
-                    invNumbers.add(sequenceDao.getNextInventoryNumber());
+                if (item.isNeedsInventoryNumber() && item.getQuantity() > 0) {
+                    invNumbers.addAll(sequenceDao.getNextInventoryNumbers(session, item.getQuantity()));
                 }
+
+                Article article = Article.builder()
+                        .reference(ref)
+                        .name(item.getDesignation())
+                        .caracteristique(item.getCaracteristique())
+                        .prixUnit(item.getPrixUnit())
+                        .quantityInStock(0)
+                        .quantityDamaged(0)
+                        .totalReceived(item.getQuantity())
+                        .categories(new HashSet<>())
+                        .availableInventoryNumbers(invNumbers)
+                        .build();
+
+                // Merge categories to session to avoid detached entity warnings
+                Set<Category> mappedCategories = new HashSet<>();
+                for (Category cat : item.getAllSelectedCategories().stream()
+                        .map(ma.estf.magasiner.models.mapper.CategoryMapper::toEntity)
+                        .collect(java.util.stream.Collectors.toSet())) {
+                    mappedCategories.add(session.merge(cat));
+                }
+                article.setCategories(mappedCategories);
+
+                session.persist(article);
+
+                // 🔹 Movement (use the overload that accepts session)
+                new MovementService().recordMovement(
+                        session,
+                        ma.estf.magasiner.models.entity.MovementType.IN,
+                        article.getId(),
+                        item.getQuantity(),
+                        fournisseur != null ? fournisseur : "FOURNISSEUR",
+                        "STOCK",
+                        numeroBC
+                );
+
+                LigneBonCommande ligne = LigneBonCommande.builder()
+                        .bonCommande(bc)
+                        .article(article)
+                        .quantiteCommandee(item.getQuantity())
+                        .quantiteLivree(item.getQuantity())
+                        .build();
+
+                bc.getLignes().add(ligne);
             }
 
-            Article article = Article.builder()
-                    .reference(ref)
-                    .name(item.getDesignation())
-                    .caracteristique(item.getCaracteristique())
-                    .prixUnit(item.getPrixUnit())
-                    .quantityInStock(0)
-                    .quantityDamaged(0)
-                    .totalReceived(item.getQuantity())
-
-                    .categories(item.getAllSelectedCategories().stream()
-                            .map(ma.estf.magasiner.models.mapper.CategoryMapper::toEntity)
-                            .collect(java.util.stream.Collectors.toSet()))
-                    .availableInventoryNumbers(invNumbers)
-                    .build();
-
-            articleDao.save(article);
-
-            // 🔹 Movement (use fournisseur if available)
-            new MovementService().recordMovement(
-                    ma.estf.magasiner.models.entity.MovementType.IN,
-                    article.getId(),
-                    item.getQuantity(),
-                    fournisseur != null ? fournisseur : "FOURNISSEUR",
-                    "STOCK",
-                    numeroBC
-            );
-
-            LigneBonCommande ligne = LigneBonCommande.builder()
-                    .bonCommande(bc)
-                    .article(article)
-                    .quantiteCommandee(item.getQuantity())
-                    .quantiteLivree(item.getQuantity())
-                    .build();
-
-            bc.getLignes().add(ligne);
+            session.persist(bc);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
+            }
+            throw e;
         }
-
-        bonCommandeDao.save(bc);
     }
 }

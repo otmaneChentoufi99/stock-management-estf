@@ -21,6 +21,8 @@ public class ArticleDto {
     private String bonCommandeNumero;
     private String bonCommandeFournisseur;
     private String bonCommandeDate;
+    private String bonCommandesSummary;
+    private Integer quantiteCommandee;
     private Set<CategoryDto> categories;
     private java.util.List<String> availableInventoryNumbers;
 }

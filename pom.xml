@@ -129,6 +129,7 @@
                     <mainClass>ma.estf.magasiner.Launcher</mainClass>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 </project>

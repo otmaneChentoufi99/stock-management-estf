@@ -293,7 +293,7 @@
 
             <!-- Right: EMARGEMENT -->
             <staticText>
-                <reportElement x="385" y="608" width="175" height="20"/>
+                <reportElement x="385" y="600" width="175" height="20"/>
                 <textElement textAlignment="Left" verticalAlignment="Top">
                     <font size="9" isBold="true"/>
                 </textElement>

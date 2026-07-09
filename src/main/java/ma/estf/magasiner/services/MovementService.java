@@ -80,4 +80,10 @@ public class MovementService {
                 .map(MovementMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    public List<MovementDto> getRecentMovements(LocalDateTime limitDate) {
+        return movementDao.findRecentMovements(limitDate).stream()
+                .map(MovementMapper::toDto)
+                .collect(Collectors.toList());
+    }
 }

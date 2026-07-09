@@ -7,6 +7,8 @@ import javafx.fxml.FXML;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
+import javafx.concurrent.Task;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import ma.estf.magasiner.models.dto.ArticleDto;
@@ -14,6 +16,7 @@ import ma.estf.magasiner.models.dto.CategoryDto;
 import ma.estf.magasiner.models.dto.MovementDto;
 import ma.estf.magasiner.models.entity.MovementType;
 import ma.estf.magasiner.services.ArticleService;
+import ma.estf.magasiner.services.CategoryService;
 import ma.estf.magasiner.services.MovementService;
 import ma.estf.magasiner.services.ReportExportService;
 
@@ -51,18 +54,36 @@ public class ReportsController {
     @FXML private TableView<Object> previewTable;
     @FXML private Button btnPreview;
     @FXML private Button btnExport;
+    @FXML private ComboBox<String> filterCategoryCombo;
+    @FXML private ComboBox<String> filterFormatCombo;
+
+    // Loading indicator overlay
+    @FXML private StackPane loadingOverlay;
+    @FXML private TabPane mainTabPane;
 
     private final ArticleService articleService = new ArticleService();
     private final MovementService movementService = new MovementService();
+    private final CategoryService categoryService = new CategoryService();
     private final ReportExportService exportService = new ReportExportService();
-
-    private List<ArticleDto> allArticles = new ArrayList<>();
-    private List<MovementDto> allMovements = new ArrayList<>();
 
     // Keep track of filtered data ready for export
     private List<ArticleDto> filteredArticlesForExport = new ArrayList<>();
     private List<MovementDto> filteredMovementsForExport = new ArrayList<>();
     private String currentReportType = "";
+
+    private static class DashboardData {
+        final Object[] kpiResults;
+        final List<Object[]> categoryDistribution;
+        final List<ArticleDto> topArticles;
+        final List<MovementDto> recentMovements;
+
+        DashboardData(Object[] kpiResults, List<Object[]> categoryDistribution, List<ArticleDto> topArticles, List<MovementDto> recentMovements) {
+            this.kpiResults = kpiResults;
+            this.categoryDistribution = categoryDistribution;
+            this.topArticles = topArticles;
+            this.recentMovements = recentMovements;
+        }
+    }
 
     @FXML
     public void initialize() {
@@ -72,6 +93,24 @@ public class ReportsController {
 
         exportFormatCombo.setItems(FXCollections.observableArrayList("Excel (.xlsx)", "PDF (.pdf)", "CSV (.csv)"));
         exportFormatCombo.setValue("Excel (.xlsx)");
+
+        // Initialize Category Filter
+        List<CategoryDto> categories = categoryService.findByType("CATEGORY");
+        ObservableList<String> catNames = FXCollections.observableArrayList("Toutes");
+        if (categories != null) {
+            catNames.addAll(categories.stream().map(CategoryDto::getName).collect(Collectors.toList()));
+        }
+        filterCategoryCombo.setItems(catNames);
+        filterCategoryCombo.setValue("Toutes");
+
+        // Initialize Format Filter
+        List<CategoryDto> formats = categoryService.findByType("FORMAT");
+        ObservableList<String> formatNames = FXCollections.observableArrayList("Tous");
+        if (formats != null) {
+            formatNames.addAll(formats.stream().map(CategoryDto::getName).collect(Collectors.toList()));
+        }
+        filterFormatCombo.setItems(formatNames);
+        filterFormatCombo.setValue("Tous");
 
         // Date Pickers defaults to last 30 days
         startDatePicker.setValue(LocalDate.now().minusDays(30));
@@ -92,75 +131,78 @@ public class ReportsController {
     }
 
     private void refreshDashboardData() {
-        try {
-            allArticles = articleService.getAllArticles();
-            allMovements = movementService.getAllMovements();
+        loadingOverlay.setVisible(true);
+
+        Task<DashboardData> loadTask = new Task<>() {
+            @Override
+            protected DashboardData call() throws Exception {
+                Object[] kpiResults = articleService.getInventoryKpis();
+                List<Object[]> categoryDistribution = articleService.getCategoryStockDistribution();
+                List<ArticleDto> topArticles = articleService.getTopArticlesByStock(8);
+
+                LocalDateTime limitDate = LocalDateTime.now().minusDays(30).withHour(0).withMinute(0).withSecond(0);
+                List<MovementDto> recentMovements = movementService.getRecentMovements(limitDate);
+
+                return new DashboardData(kpiResults, categoryDistribution, topArticles, recentMovements);
+            }
+        };
+
+        loadTask.setOnSucceeded(event -> {
+            DashboardData data = loadTask.getValue();
 
             // Populate KPIs
-            double totalValue = allArticles.stream()
-                    .mapToDouble(a -> (a.getQuantityInStock() != null ? a.getQuantityInStock() : 0) * (a.getPrixUnit() != null ? a.getPrixUnit() : 0.0))
-                    .sum();
-            lblTotalValue.setText(String.format("%,.2f DH", totalValue));
+            if (data.kpiResults != null) {
+                Double totalValue = (Double) data.kpiResults[0];
+                lblTotalValue.setText(String.format("%,.2f DH", totalValue != null ? totalValue : 0.0));
 
-            int totalArticlesQty = allArticles.stream()
-                    .mapToInt(a -> a.getQuantityInStock() != null ? a.getQuantityInStock() : 0)
-                    .sum();
-            lblTotalArticles.setText(String.valueOf(totalArticlesQty));
+                Number totalArticlesQty = (Number) data.kpiResults[1];
+                lblTotalArticles.setText(String.valueOf(totalArticlesQty != null ? totalArticlesQty.intValue() : 0));
 
-            long lowStockCount = allArticles.stream()
-                    .filter(a -> (a.getQuantityInStock() != null ? a.getQuantityInStock() : 0) < 10)
-                    .count();
-            lblLowStock.setText(String.valueOf(lowStockCount));
+                Number lowStockCount = (Number) data.kpiResults[2];
+                lblLowStock.setText(String.valueOf(lowStockCount != null ? lowStockCount.intValue() : 0));
 
-            int totalDamaged = allArticles.stream()
-                    .mapToInt(a -> a.getQuantityDamaged() != null ? a.getQuantityDamaged() : 0)
-                    .sum();
-            lblDamagedCount.setText(String.valueOf(totalDamaged));
+                Number totalDamaged = (Number) data.kpiResults[3];
+                lblDamagedCount.setText(String.valueOf(totalDamaged != null ? totalDamaged.intValue() : 0));
+            }
 
             // Load Charts
-            loadCategoryPieChart();
-            loadStockBarChart();
-            loadMovementLineChart();
+            bindCategoryPieChart(data.categoryDistribution);
+            bindStockBarChart(data.topArticles);
+            bindMovementLineChart(data.recentMovements);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            showErrorAlert("Erreur de chargement", "Impossible de charger les données statistiques : " + e.getMessage());
-        }
+            loadingOverlay.setVisible(false);
+        });
+
+        loadTask.setOnFailed(event -> {
+            loadingOverlay.setVisible(false);
+            Throwable e = loadTask.getException();
+            if (e != null) {
+                e.printStackTrace();
+                showErrorAlert("Erreur de chargement", "Impossible de charger les données statistiques : " + e.getMessage());
+            }
+        });
+
+        new Thread(loadTask).start();
     }
 
-    private void loadCategoryPieChart() {
+    private void bindCategoryPieChart(List<Object[]> distribution) {
         categoryPieChart.getData().clear();
 
-        Map<String, Integer> categoryCounts = new HashMap<>();
-        for (ArticleDto art : allArticles) {
-            int qty = art.getQuantityInStock() != null ? art.getQuantityInStock() : 0;
-            if (qty <= 0) continue;
-
-            if (art.getCategories() == null || art.getCategories().isEmpty()) {
-                categoryCounts.put("Sans Catégorie", categoryCounts.getOrDefault("Sans Catégorie", 0) + qty);
-            } else {
-                for (CategoryDto cat : art.getCategories()) {
-                    categoryCounts.put(cat.getName(), categoryCounts.getOrDefault(cat.getName(), 0) + qty);
-                }
+        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+        if (distribution != null) {
+            for (Object[] row : distribution) {
+                String catName = (String) row[0];
+                Number qty = (Number) row[1];
+                int val = qty != null ? qty.intValue() : 0;
+                pieData.add(new PieChart.Data(catName + " (" + val + ")", val));
             }
         }
-
-        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
-        categoryCounts.forEach((catName, qty) -> pieData.add(new PieChart.Data(catName + " (" + qty + ")", qty)));
         categoryPieChart.setData(pieData);
     }
 
-    private void loadStockBarChart() {
+    private void bindStockBarChart(List<ArticleDto> topArticles) {
         stockBarChart.getData().clear();
-
-        // Sort by stock quantity descending and take top 8
-        List<ArticleDto> topArticles = allArticles.stream()
-                .sorted((a, b) -> Integer.compare(
-                        b.getQuantityInStock() != null ? b.getQuantityInStock() : 0,
-                        a.getQuantityInStock() != null ? a.getQuantityInStock() : 0
-                ))
-                .limit(8)
-                .collect(Collectors.toList());
+        if (topArticles == null) return;
 
         XYChart.Series<String, Number> seriesAvailable = new XYChart.Series<>();
         seriesAvailable.setName("Disponible");
@@ -177,24 +219,16 @@ public class ReportsController {
         stockBarChart.getData().addAll(Arrays.asList(seriesAvailable, seriesDamaged));
     }
 
-    private void loadMovementLineChart() {
+    private void bindMovementLineChart(List<MovementDto> recentMovements) {
         movementLineChart.getData().clear();
+        if (recentMovements == null) return;
 
-        // Focus on movements in the last 30 days
-        LocalDate limitDate = LocalDate.now().minusDays(30);
-        List<MovementDto> recentMovements = allMovements.stream()
-                .filter(m -> m.getDate() != null && m.getDate().toLocalDate().isAfter(limitDate.minusDays(1)))
-                .collect(Collectors.toList());
-
-        // Group by Date and type category (IN vs OUT)
-        // IN categories: IN, RETURN, CORRECTION (if positive, but let's treat CORRECTION as IN for simplicity)
-        // OUT categories: OUT, TRANSFER, LOSS, DAMAGE, MAINTENANCE
         Map<String, Integer> dailyIns = new TreeMap<>();
         Map<String, Integer> dailyOuts = new TreeMap<>();
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM-dd");
 
-        // Prepopulate dates to avoid missing days in chart (last 15 days or last 30 days)
+        // Prepopulate dates to avoid missing days in chart (last 30 days)
         for (int i = 29; i >= 0; i--) {
             String dateLabel = LocalDate.now().minusDays(i).format(dtf);
             dailyIns.put(dateLabel, 0);
@@ -202,6 +236,7 @@ public class ReportsController {
         }
 
         for (MovementDto m : recentMovements) {
+            if (m.getDate() == null) continue;
             String dateLabel = m.getDate().format(dtf);
             if (!dailyIns.containsKey(dateLabel)) continue; // outside the 30-day window
 
@@ -232,42 +267,104 @@ public class ReportsController {
     @FXML
     public void handleFilterPreview() {
         currentReportType = reportTypeCombo.getValue();
+        String selectedCategory = filterCategoryCombo.getValue();
+        String selectedFormat = filterFormatCombo.getValue();
         previewTable.getColumns().clear();
         previewTable.getItems().clear();
 
-        if ("Inventaire Global".equals(currentReportType)) {
-            filteredArticlesForExport = articleService.getAllArticles();
-            setupArticleTableColumns();
-            previewTable.setItems(FXCollections.observableArrayList(filteredArticlesForExport));
-        } else if ("Alertes de Stock Bas".equals(currentReportType)) {
-            filteredArticlesForExport = articleService.getAllArticles().stream()
-                    .filter(a -> (a.getQuantityInStock() != null ? a.getQuantityInStock() : 0) < 10)
-                    .collect(Collectors.toList());
-            setupArticleTableColumns();
-            previewTable.setItems(FXCollections.observableArrayList(filteredArticlesForExport));
-        } else if ("Mouvements de Stock".equals(currentReportType)) {
-            LocalDate start = startDatePicker.getValue();
-            LocalDate end = endDatePicker.getValue();
+        loadingOverlay.setVisible(true);
 
-            if (start == null || end == null) {
-                showWarningAlert("Champs requis", "Veuillez sélectionner les dates de début et de fin.");
-                return;
+        Task<List<?>> filterTask = new Task<>() {
+            @Override
+            protected List<?> call() throws Exception {
+                if ("Inventaire Global".equals(currentReportType)) {
+                    filteredArticlesForExport = articleService.getAllArticles();
+                    if (selectedCategory != null && !"Toutes".equals(selectedCategory)) {
+                        filteredArticlesForExport = filteredArticlesForExport.stream()
+                                .filter(a -> a.getCategories() != null && a.getCategories().stream().anyMatch(c -> "CATEGORY".equals(c.getType()) && c.getName().equals(selectedCategory)))
+                                .collect(Collectors.toList());
+                    }
+                    if (selectedFormat != null && !"Tous".equals(selectedFormat)) {
+                        filteredArticlesForExport = filteredArticlesForExport.stream()
+                                .filter(a -> a.getCategories() != null && a.getCategories().stream().anyMatch(c -> "FORMAT".equals(c.getType()) && c.getName().equals(selectedFormat)))
+                                .collect(Collectors.toList());
+                    }
+                    return filteredArticlesForExport;
+                } else if ("Alertes de Stock Bas".equals(currentReportType)) {
+                    filteredArticlesForExport = articleService.getAllArticles().stream()
+                            .filter(a -> (a.getQuantityInStock() != null ? a.getQuantityInStock() : 0) < 10)
+                            .collect(Collectors.toList());
+                    if (selectedCategory != null && !"Toutes".equals(selectedCategory)) {
+                        filteredArticlesForExport = filteredArticlesForExport.stream()
+                                .filter(a -> a.getCategories() != null && a.getCategories().stream().anyMatch(c -> "CATEGORY".equals(c.getType()) && c.getName().equals(selectedCategory)))
+                                .collect(Collectors.toList());
+                    }
+                    if (selectedFormat != null && !"Tous".equals(selectedFormat)) {
+                        filteredArticlesForExport = filteredArticlesForExport.stream()
+                                .filter(a -> a.getCategories() != null && a.getCategories().stream().anyMatch(c -> "FORMAT".equals(c.getType()) && c.getName().equals(selectedFormat)))
+                                .collect(Collectors.toList());
+                    }
+                    return filteredArticlesForExport;
+                } else if ("Mouvements de Stock".equals(currentReportType)) {
+                    LocalDate start = startDatePicker.getValue();
+                    LocalDate end = endDatePicker.getValue();
+
+                    if (start == null || end == null) {
+                        throw new IllegalArgumentException("Veuillez sélectionner les dates de début et de fin.");
+                    }
+                    if (start.isAfter(end)) {
+                        throw new IllegalArgumentException("La date de début doit être antérieure à la date de fin.");
+                    }
+
+                    filteredMovementsForExport = movementService.getAllMovements().stream()
+                            .filter(m -> m.getDate() != null &&
+                                    !m.getDate().toLocalDate().isBefore(start) &&
+                                    !m.getDate().toLocalDate().isAfter(end))
+                            .sorted((m1, m2) -> m2.getDate().compareTo(m1.getDate())) // Newest first in preview
+                            .collect(Collectors.toList());
+                    if (selectedCategory != null && !"Toutes".equals(selectedCategory)) {
+                        filteredMovementsForExport = filteredMovementsForExport.stream()
+                                .filter(m -> m.getArticle() != null && m.getArticle().getCategories() != null &&
+                                        m.getArticle().getCategories().stream().anyMatch(c -> "CATEGORY".equals(c.getType()) && c.getName().equals(selectedCategory)))
+                                .collect(Collectors.toList());
+                    }
+                    if (selectedFormat != null && !"Tous".equals(selectedFormat)) {
+                        filteredMovementsForExport = filteredMovementsForExport.stream()
+                                .filter(m -> m.getArticle() != null && m.getArticle().getCategories() != null &&
+                                        m.getArticle().getCategories().stream().anyMatch(c -> "FORMAT".equals(c.getType()) && c.getName().equals(selectedFormat)))
+                                .collect(Collectors.toList());
+                    }
+                    return filteredMovementsForExport;
+                }
+                return Collections.emptyList();
             }
-            if (start.isAfter(end)) {
-                showWarningAlert("Dates invalides", "La date de début doit être antérieure à la date de fin.");
-                return;
+        };
+
+        filterTask.setOnSucceeded(event -> {
+            loadingOverlay.setVisible(false);
+            if ("Mouvements de Stock".equals(currentReportType)) {
+                setupMovementTableColumns();
+                previewTable.setItems(FXCollections.observableArrayList(filteredMovementsForExport));
+            } else {
+                setupArticleTableColumns();
+                previewTable.setItems(FXCollections.observableArrayList(filteredArticlesForExport));
             }
+        });
 
-            filteredMovementsForExport = movementService.getAllMovements().stream()
-                    .filter(m -> m.getDate() != null &&
-                            !m.getDate().toLocalDate().isBefore(start) &&
-                            !m.getDate().toLocalDate().isAfter(end))
-                    .sorted((m1, m2) -> m2.getDate().compareTo(m1.getDate())) // Newest first in preview
-                    .collect(Collectors.toList());
+        filterTask.setOnFailed(event -> {
+            loadingOverlay.setVisible(false);
+            Throwable e = filterTask.getException();
+            if (e != null) {
+                if (e instanceof IllegalArgumentException) {
+                    showWarningAlert("Champs requis", e.getMessage());
+                } else {
+                    e.printStackTrace();
+                    showErrorAlert("Erreur de chargement", "Impossible de filtrer les données : " + e.getMessage());
+                }
+            }
+        });
 
-            setupMovementTableColumns();
-            previewTable.setItems(FXCollections.observableArrayList(filteredMovementsForExport));
-        }
+        new Thread(filterTask).start();
     }
 
     private void setupArticleTableColumns() {
@@ -279,13 +376,27 @@ public class ReportsController {
         colName.setCellValueFactory(cellData -> new SimpleStringProperty(((ArticleDto) cellData.getValue()).getName()));
         colName.setPrefWidth(220);
 
-        TableColumn<Object, String> colCats = new TableColumn<>("Catégories");
+        TableColumn<Object, String> colCats = new TableColumn<>("Catégorie");
         colCats.setCellValueFactory(cellData -> {
             Set<CategoryDto> cats = ((ArticleDto) cellData.getValue()).getCategories();
-            String catsStr = (cats != null) ? cats.stream().map(CategoryDto::getName).collect(Collectors.joining(", ")) : "-";
+            String catsStr = (cats != null) ? cats.stream()
+                    .filter(c -> "CATEGORY".equals(c.getType()))
+                    .map(CategoryDto::getName)
+                    .collect(Collectors.joining(", ")) : "-";
             return new SimpleStringProperty(catsStr.isEmpty() ? "-" : catsStr);
         });
-        colCats.setPrefWidth(150);
+        colCats.setPrefWidth(130);
+
+        TableColumn<Object, String> colFormats = new TableColumn<>("Format");
+        colFormats.setCellValueFactory(cellData -> {
+            Set<CategoryDto> cats = ((ArticleDto) cellData.getValue()).getCategories();
+            String formatsStr = (cats != null) ? cats.stream()
+                    .filter(c -> "FORMAT".equals(c.getType()))
+                    .map(CategoryDto::getName)
+                    .collect(Collectors.joining(", ")) : "-";
+            return new SimpleStringProperty(formatsStr.isEmpty() ? "-" : formatsStr);
+        });
+        colFormats.setPrefWidth(120);
 
         TableColumn<Object, String> colPrice = new TableColumn<>("Prix Unit.");
         colPrice.setCellValueFactory(cellData -> {
@@ -316,7 +427,14 @@ public class ReportsController {
         });
         colVal.setPrefWidth(120);
 
-        previewTable.getColumns().addAll(Arrays.asList(colRef, colName, colCats, colPrice, colQty, colDamaged, colVal));
+        TableColumn<Object, String> colBcs = new TableColumn<>("Bons de Commande");
+        colBcs.setCellValueFactory(cellData -> {
+            String bcs = ((ArticleDto) cellData.getValue()).getBonCommandesSummary();
+            return new SimpleStringProperty(bcs != null ? bcs : "-");
+        });
+        colBcs.setPrefWidth(250);
+
+        previewTable.getColumns().addAll(Arrays.asList(colRef, colName, colCats, colFormats, colBcs, colPrice, colQty, colDamaged, colVal));
     }
 
     private void setupMovementTableColumns() {
@@ -356,7 +474,28 @@ public class ReportsController {
         colRef.setCellValueFactory(cellData -> new SimpleStringProperty(((MovementDto) cellData.getValue()).getReference()));
         colRef.setPrefWidth(120);
 
-        previewTable.getColumns().addAll(Arrays.asList(colDate, colType, colArt, colQty, colFrom, colTo, colRef));
+        TableColumn<Object, String> colEntryDate = new TableColumn<>("Date Entrée");
+        colEntryDate.setCellValueFactory(cellData -> {
+            ArticleDto a = ((MovementDto) cellData.getValue()).getArticle();
+            return new SimpleStringProperty(a != null && a.getBonCommandeDate() != null && !a.getBonCommandeDate().isEmpty() ? a.getBonCommandeDate() : "-");
+        });
+        colEntryDate.setPrefWidth(120);
+
+        TableColumn<Object, String> colOrderQty = new TableColumn<>("Qté Comm.");
+        colOrderQty.setCellValueFactory(cellData -> {
+            ArticleDto a = ((MovementDto) cellData.getValue()).getArticle();
+            return new SimpleStringProperty(a != null && a.getQuantiteCommandee() != null ? String.valueOf(a.getQuantiteCommandee()) : "0");
+        });
+        colOrderQty.setPrefWidth(90);
+
+        TableColumn<Object, String> colStockRemaining = new TableColumn<>("Stock Restant");
+        colStockRemaining.setCellValueFactory(cellData -> {
+            ArticleDto a = ((MovementDto) cellData.getValue()).getArticle();
+            return new SimpleStringProperty(a != null && a.getQuantityInStock() != null ? String.valueOf(a.getQuantityInStock()) : "0");
+        });
+        colStockRemaining.setPrefWidth(100);
+
+        previewTable.getColumns().addAll(Arrays.asList(colDate, colType, colArt, colQty, colFrom, colTo, colRef, colEntryDate, colOrderQty, colStockRemaining));
     }
 
     @FXML

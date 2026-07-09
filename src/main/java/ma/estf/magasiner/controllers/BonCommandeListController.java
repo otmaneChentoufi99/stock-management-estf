@@ -392,8 +392,8 @@ public class BonCommandeListController {
 
         // If we need more sequence values than currently allocated, fetch them
         int diff = totalQtyNeeded - sessionAllocatedNumbers.size();
-        for (int i = 0; i < diff; i++) {
-            sessionAllocatedNumbers.add(sequenceDao.getNextInventoryNumber());
+        if (diff > 0) {
+            sessionAllocatedNumbers.addAll(sequenceDao.getNextInventoryNumbers(diff));
         }
 
         // Sort the numbers to make sure they are in order

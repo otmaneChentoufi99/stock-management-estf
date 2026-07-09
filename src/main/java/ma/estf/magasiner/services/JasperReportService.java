@@ -11,6 +11,7 @@ import ma.estf.magasiner.models.entity.BonCommande;
 import ma.estf.magasiner.dao.BonCommandeDao;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -24,6 +25,27 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class JasperReportService {
+
+    private static final Map<String, JasperReport> compiledReportsCache = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private JasperReport getOrCompileReport(String jrxmlPath) throws Exception {
+        JasperReport report = compiledReportsCache.get(jrxmlPath);
+        if (report == null) {
+            synchronized (compiledReportsCache) {
+                report = compiledReportsCache.get(jrxmlPath);
+                if (report == null) {
+                    try (InputStream reportStream = getClass().getResourceAsStream(jrxmlPath)) {
+                        if (reportStream == null) {
+                            throw new Exception("Report template not found: " + jrxmlPath);
+                        }
+                        report = JasperCompileManager.compileReport(reportStream);
+                        compiledReportsCache.put(jrxmlPath, report);
+                    }
+                }
+            }
+        }
+        return report;
+    }
 
     public static class InvoiceItem {
         private String reference;
@@ -56,7 +78,7 @@ public class JasperReportService {
                 boolean isMaterial = "MATERIEL".equals(affectation.getCategory());
                 
                 // 1. Generate Invoice
-                generateInvoice(affectation, isMaterial);
+                generateInvoice(affectation);
 
                 // 2. Generate Labels for Material
                 if (isMaterial) {
@@ -80,13 +102,10 @@ public class JasperReportService {
         });
     }
 
-    private void generateInvoice(Affectation affectation, boolean isMaterial) throws Exception {
+    public java.io.File generateInvoice(Affectation affectation) throws Exception {
+        boolean isMaterial = "MATERIEL".equals(affectation.getCategory());
         String templatePath = isMaterial ? "/ma/estf/magasiner/reports/material_fiche.jrxml" : "/ma/estf/magasiner/reports/invoice.jrxml";
-        InputStream reportStream = getClass().getResourceAsStream(templatePath);
-        if (reportStream == null) {
-            throw new Exception("Report template not found: " + templatePath);
-        }
-        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+        JasperReport jasperReport = getOrCompileReport(templatePath);
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(
@@ -185,15 +204,12 @@ public class JasperReportService {
                 // Ignore if it can't open
             }
         }
+        return pdfFile;
     }
 
     public void generateTransformationReport(Affectation target, String sourceEmployee) throws Exception {
         String templatePath = "/ma/estf/magasiner/reports/transformation_fiche.jrxml";
-        InputStream reportStream = getClass().getResourceAsStream(templatePath);
-        if (reportStream == null) {
-            throw new Exception("Report template not found: " + templatePath);
-        }
-        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+        JasperReport jasperReport = getOrCompileReport(templatePath);
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(
@@ -277,11 +293,7 @@ public class JasperReportService {
 
     public java.io.File generateReturnReport(Affectation affectation, List<AffectationItem> returnedItems) throws Exception {
         String templatePath = "/ma/estf/magasiner/reports/return_fiche.jrxml";
-        InputStream reportStream = getClass().getResourceAsStream(templatePath);
-        if (reportStream == null) {
-            throw new Exception("Report template not found: " + templatePath);
-        }
-        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+        JasperReport jasperReport = getOrCompileReport(templatePath);
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(
@@ -360,11 +372,7 @@ public class JasperReportService {
     }
 
     private void generateLabels(Affectation affectation) throws Exception {
-        InputStream reportStream = getClass().getResourceAsStream("/ma/estf/magasiner/reports/label.jrxml");
-        if (reportStream == null) {
-            throw new Exception("Label report template not found.");
-        }
-        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+        JasperReport jasperReport = getOrCompileReport("/ma/estf/magasiner/reports/label.jrxml");
 
         String dateStr = affectation.getDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         

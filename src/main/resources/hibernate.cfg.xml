@@ -6,7 +6,7 @@
     <session-factory>
         <!-- Database connection settings -->
         <property name="connection.driver_class">org.sqlite.JDBC</property>
-        <property name="connection.url">jdbc:sqlite:magasiner.db?journal_mode=WAL</property>
+        <property name="connection.url">jdbc:sqlite:magasiner.db?journal_mode=WAL&amp;busy_timeout=5000</property>
         <!-- Dialect -->
         <property name="dialect">org.hibernate.community.dialect.SQLiteDialect</property>
 

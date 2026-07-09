@@ -21,4 +21,17 @@ public class ArticleService {
         dao.update(ArticleMapper.toEntity(dto));
     }
 
+    public Object[] getInventoryKpis() {
+        return dao.getInventoryKpis();
+    }
+
+    public List<Object[]> getCategoryStockDistribution() {
+        return dao.getCategoryStockDistribution();
+    }
+
+    public List<ArticleDto> getTopArticlesByStock(int limit) {
+        return dao.findTopArticlesByStock(limit).stream()
+                .map(ArticleMapper::toDto)
+                .collect(Collectors.toList());
+    }
 }

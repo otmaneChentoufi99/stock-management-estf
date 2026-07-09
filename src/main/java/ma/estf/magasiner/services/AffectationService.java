@@ -130,126 +130,7 @@ public class AffectationService {
                 .collect(Collectors.toList());
     }
 
-    private java.io.File generateInvoice(Affectation affectation, boolean isMaterial) throws Exception {
-        String filename = "bon_affectation_" + affectation.getId() + ".pdf";
-        java.io.File pdfFile = new java.io.File(filename);
-        com.lowagie.text.Document document = new com.lowagie.text.Document(com.lowagie.text.PageSize.A4);
-        com.lowagie.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(pdfFile));
-        document.open();
-        
-        com.lowagie.text.Font titleFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 18, com.lowagie.text.Font.BOLD);
-        if (isMaterial) {
-            titleFont.setColor(new java.awt.Color(0, 102, 204));
-        }
-        com.lowagie.text.Font boldFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.BOLD);
-        com.lowagie.text.Font normalFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.NORMAL);
 
-        document.add(new com.lowagie.text.Paragraph("UNIVERSITE SIDI MOHAMED BEN ABDELLAH", boldFont));
-        document.add(new com.lowagie.text.Paragraph("ECOLE SUPERIEURE DE TECHNOLOGIE - FES", boldFont));
-        document.add(new com.lowagie.text.Paragraph("SERVICE ECONOMIQUE", normalFont));
-        document.add(new com.lowagie.text.Paragraph("\n"));
-
-        String titleText = "BON DE SORTIE MAGASIN N° " + affectation.getId() + (isMaterial ? " (Matériel)" : " (Consommable)");
-        com.lowagie.text.Paragraph title = new com.lowagie.text.Paragraph(titleText, titleFont);
-        title.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
-        document.add(title);
-        document.add(new com.lowagie.text.Paragraph("\n"));
-
-        com.lowagie.text.pdf.PdfPTable infoTable = new com.lowagie.text.pdf.PdfPTable(2);
-        infoTable.setWidthPercentage(100);
-        infoTable.getDefaultCell().setBorder(com.lowagie.text.Rectangle.NO_BORDER);
-        
-        infoTable.addCell(new com.lowagie.text.Phrase("Fait a Fes, le: " + affectation.getDate().toLocalDate().toString(), normalFont));
-        infoTable.addCell(new com.lowagie.text.Phrase("Departement: " + (affectation.getDepartment() != null ? affectation.getDepartment().getName() : ""), normalFont));
-        infoTable.addCell(new com.lowagie.text.Phrase("Beneficiaire: " + (affectation.getEmployeeName() != null ? affectation.getEmployeeName() : ""), normalFont));
-        infoTable.addCell(new com.lowagie.text.Phrase(" ", normalFont));
-        document.add(infoTable);
-        document.add(new com.lowagie.text.Paragraph("\n"));
-
-        int numCols = isMaterial ? 4 : 3;
-        com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(numCols);
-        table.setWidthPercentage(100);
-        if (isMaterial) {
-            table.setWidths(new float[]{2f, 4f, 2f, 3f});
-        } else {
-            table.setWidths(new float[]{2f, 5f, 2f});
-        }
-        
-        String[] headers = isMaterial ? new String[]{"Reference", "Designation", "Qte Livree", "N° Inventaire"} : new String[]{"Reference", "Designation", "Qte Livree"};
-        
-        java.awt.Color headerColor = isMaterial ? new java.awt.Color(173, 216, 230) : new java.awt.Color(230, 230, 230); // Light blue for material, gray for consumable
-        for (String h : headers) {
-            com.lowagie.text.pdf.PdfPCell cell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(h, boldFont));
-            cell.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
-            cell.setPadding(5);
-            cell.setBackgroundColor(headerColor);
-            table.addCell(cell);
-        }
-
-        Map<Article, List<AffectationItem>> groupedItems = affectation.getItems().stream()
-                .collect(Collectors.groupingBy(AffectationItem::getArticle, LinkedHashMap::new, Collectors.toList()));
-
-        for (Map.Entry<Article, List<AffectationItem>> entry : groupedItems.entrySet()) {
-            Article article = entry.getKey();
-            List<AffectationItem> items = entry.getValue();
-            int totalQty = items.stream().mapToInt(AffectationItem::getQuantity).sum();
-
-            com.lowagie.text.pdf.PdfPCell refCell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(article.getReference(), normalFont));
-            refCell.setPadding(5);
-            table.addCell(refCell);
-
-            com.lowagie.text.pdf.PdfPCell nameCell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(article.getName(), normalFont));
-            nameCell.setPadding(5);
-            table.addCell(nameCell);
-
-            com.lowagie.text.pdf.PdfPCell qtyCell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(String.valueOf(totalQty), normalFont));
-            qtyCell.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
-            qtyCell.setPadding(5);
-            table.addCell(qtyCell);
-            
-            if (isMaterial) {
-                List<String> invs = items.stream()
-                        .map(AffectationItem::getInventoryNumber)
-                        .filter(inv -> inv != null && !inv.trim().isEmpty())
-                        .sorted()
-                        .collect(Collectors.toList());
-
-                String invText = "-";
-                if (!invs.isEmpty()) {
-                    if (invs.size() == 1) {
-                        invText = invs.get(0);
-                    } else {
-                        invText = invs.get(0) + " à " + invs.get(invs.size() - 1);
-                    }
-                }
-                com.lowagie.text.pdf.PdfPCell invCell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(invText, normalFont));
-                invCell.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
-                invCell.setPadding(5);
-                table.addCell(invCell);
-            }
-        }
-        document.add(table);
-        document.add(new com.lowagie.text.Paragraph("\n\n\n"));
-
-        com.lowagie.text.pdf.PdfPTable sigTable = new com.lowagie.text.pdf.PdfPTable(2);
-        sigTable.setWidthPercentage(100);
-        sigTable.getDefaultCell().setBorder(com.lowagie.text.Rectangle.NO_BORDER);
-        
-        com.lowagie.text.pdf.PdfPCell cell1 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Signature du Demandeur", boldFont));
-        cell1.setBorder(com.lowagie.text.Rectangle.NO_BORDER);
-        cell1.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
-        sigTable.addCell(cell1);
-        
-        com.lowagie.text.pdf.PdfPCell cell2 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Signature du Magasinier", boldFont));
-        cell2.setBorder(com.lowagie.text.Rectangle.NO_BORDER);
-        cell2.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
-        sigTable.addCell(cell2);
-        
-        document.add(sigTable);
-        document.close();
-        System.out.println("Invoice saved to " + pdfFile.getAbsolutePath());
-        return pdfFile;
-    }
 
     public java.io.File transferItems(Long assignmentId, Map<Long, Integer> itemsToTransfer, String newEmployeeName, Long newDeptId) throws Exception {
         Transaction tx = null;
@@ -316,7 +197,7 @@ public class AffectationService {
                 new JasperReportService().generateTransformationReport(target, source.getEmployeeName());
                 return null; // The file is opened by JasperReportService
             } else {
-                return generateInvoice(target, false);
+                return new JasperReportService().generateInvoice(target);
             }
         } catch (Exception e) {
             if (tx != null) tx.rollback();

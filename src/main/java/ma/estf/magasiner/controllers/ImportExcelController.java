@@ -21,7 +21,7 @@ import ma.estf.magasiner.services.CategoryService;
 
 import java.io.File;
 
-public class ImportCSVController {
+public class ImportExcelController {
 
 
     @FXML private Label selectedFileLabel;

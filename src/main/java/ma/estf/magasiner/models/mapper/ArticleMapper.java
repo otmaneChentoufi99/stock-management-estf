@@ -12,8 +12,21 @@ public class ArticleMapper {
         String bcNum = "";
         String bcFournisseur = "";
         String bcDate = "";
+        String bcSummary = "";
+        int qtyCommandee = 0;
         
         if (entity.getLignesBonCommande() != null && !entity.getLignesBonCommande().isEmpty()) {
+            bcSummary = entity.getLignesBonCommande().stream()
+                .map(ma.estf.magasiner.models.entity.LigneBonCommande::getBonCommande)
+                .filter(java.util.Objects::nonNull)
+                .map(bc -> bc.getNumero() + " (" + bc.getFournisseur() + ")")
+                .distinct()
+                .collect(Collectors.joining(", "));
+
+            qtyCommandee = entity.getLignesBonCommande().stream()
+                .mapToInt(ma.estf.magasiner.models.entity.LigneBonCommande::getQuantiteCommandee)
+                .sum();
+
             ma.estf.magasiner.models.entity.BonCommande bc = entity.getLignesBonCommande().get(0).getBonCommande();
             if (bc != null) {
                 bcNum = bc.getNumero();
@@ -35,6 +48,8 @@ public class ArticleMapper {
                 .bonCommandeNumero(bcNum)
                 .bonCommandeFournisseur(bcFournisseur)
                 .bonCommandeDate(bcDate)
+                .bonCommandesSummary(bcSummary.isEmpty() ? "-" : bcSummary)
+                .quantiteCommandee(qtyCommandee)
                 .categories(entity.getCategories() != null ? entity.getCategories().stream().map(CategoryMapper::toDto).collect(Collectors.toSet()) : new HashSet<>())
                 .availableInventoryNumbers(entity.getAvailableInventoryNumbers() != null ? new java.util.ArrayList<>(entity.getAvailableInventoryNumbers()) : new java.util.ArrayList<>())
                 .build();
