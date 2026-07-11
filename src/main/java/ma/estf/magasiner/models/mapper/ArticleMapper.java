@@ -37,7 +37,6 @@ public class ArticleMapper {
         
         return ArticleDto.builder()
                 .id(entity.getId())
-                .reference(entity.getReference())
                 .name(entity.getName())
                 .caracteristique(entity.getCaracteristique())
                 .prixUnit(entity.getPrixUnit())
@@ -59,7 +58,6 @@ public class ArticleMapper {
         if (dto == null) return null;
         return Article.builder()
                 .id(dto.getId())
-                .reference(dto.getReference())
                 .name(dto.getName())
                 .caracteristique(dto.getCaracteristique())
                 .prixUnit(dto.getPrixUnit())

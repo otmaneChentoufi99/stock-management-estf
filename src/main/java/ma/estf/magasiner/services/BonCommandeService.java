@@ -464,8 +464,6 @@ public class BonCommandeService {
             SequenceDao sequenceDao = new SequenceDao();
 
             for (ParsedArticleItem item : items) {
-                String ref = "REF-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1000);
-
                 List<String> invNumbers = new ArrayList<>();
 
                 if (item.isNeedsInventoryNumber() && item.getQuantity() > 0) {
@@ -473,7 +471,6 @@ public class BonCommandeService {
                 }
 
                 Article article = Article.builder()
-                        .reference(ref)
                         .name(item.getDesignation())
                         .caracteristique(item.getCaracteristique())
                         .prixUnit(item.getPrixUnit())

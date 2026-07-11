@@ -13,14 +13,11 @@ public class BonCommandeDetailsController {
 
     @FXML private Label titleLabel;
     @FXML private TableView<LigneBonCommandeDto> lignesTable;
-    @FXML private TableColumn<LigneBonCommandeDto, String> colRef;
     @FXML private TableColumn<LigneBonCommandeDto, String> colName;
     @FXML private TableColumn<LigneBonCommandeDto, Integer> colQty;
 
     @FXML
     public void initialize() {
-        colRef.setCellValueFactory(cellData -> 
-            new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArticle().getReference()));
         colName.setCellValueFactory(cellData -> 
             new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArticle().getName()));
         colQty.setCellValueFactory(new PropertyValueFactory<>("quantiteCommandee"));

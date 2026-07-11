@@ -15,7 +15,6 @@ public class DashboardController {
     @FXML private Label totalDamagedLabel;
     
     @FXML private TableView<Article> inventoryTable;
-    @FXML private TableColumn<Article, String> colRef;
     @FXML private TableColumn<Article, String> colName;
     @FXML private TableColumn<Article, String> colType;
     @FXML private TableColumn<Article, Integer> colAvailable;
@@ -25,7 +24,6 @@ public class DashboardController {
 
     @FXML
     public void initialize() {
-        colRef.setCellValueFactory(new PropertyValueFactory<>("reference"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colType.setCellValueFactory(cellData -> {
             List<String> invs = cellData.getValue().getAvailableInventoryNumbers();

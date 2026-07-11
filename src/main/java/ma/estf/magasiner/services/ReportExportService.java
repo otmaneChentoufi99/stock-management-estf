@@ -73,7 +73,7 @@ public class ReportExportService {
             metaRow.createCell(0).setCellValue("Généré le : " + LocalDateTime.now().format(fileDateFormatter));
 
             // Headers
-            String[] headers = {"Référence", "Designation", "Caractéristiques", "Catégorie", "Format", "Bons de Commande", "Prix Unit.", "Quantité en Stock", "Quantité Endommagée", "Valeur Totale"};
+            String[] headers = {"Designation", "Caractéristiques", "Catégorie", "Format", "Bons de Commande", "Prix Unit.", "Quantité en Stock", "Quantité Endommagée", "Valeur Totale"};
             Row headerRow = sheet.createRow(3);
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
@@ -90,29 +90,28 @@ public class ReportExportService {
             for (ArticleDto art : articles) {
                 Row row = sheet.createRow(rowIdx++);
 
-                Cell c0 = row.createCell(0); c0.setCellValue(art.getReference()); c0.setCellStyle(borderStyle);
-                Cell c1 = row.createCell(1); c1.setCellValue(art.getName()); c1.setCellStyle(borderStyle);
-                Cell c2 = row.createCell(2); c2.setCellValue(art.getCaracteristique() != null ? art.getCaracteristique() : "-"); c2.setCellStyle(borderStyle);
+                Cell c0 = row.createCell(0); c0.setCellValue(art.getName()); c0.setCellStyle(borderStyle);
+                Cell c1 = row.createCell(1); c1.setCellValue(art.getCaracteristique() != null ? art.getCaracteristique() : "-"); c1.setCellStyle(borderStyle);
                 
                 String cats = art.getCategories() != null ? art.getCategories().stream().filter(c -> "CATEGORY".equals(c.getType())).map(CategoryDto::getName).collect(Collectors.joining(", ")) : "-";
-                Cell c3 = row.createCell(3); c3.setCellValue(cats.isEmpty() ? "-" : cats); c3.setCellStyle(borderStyle);
+                Cell c2 = row.createCell(2); c2.setCellValue(cats.isEmpty() ? "-" : cats); c2.setCellStyle(borderStyle);
 
                 String formats = art.getCategories() != null ? art.getCategories().stream().filter(c -> "FORMAT".equals(c.getType())).map(CategoryDto::getName).collect(Collectors.joining(", ")) : "-";
-                Cell c4 = row.createCell(4); c4.setCellValue(formats.isEmpty() ? "-" : formats); c4.setCellStyle(borderStyle);
+                Cell c3 = row.createCell(3); c3.setCellValue(formats.isEmpty() ? "-" : formats); c3.setCellStyle(borderStyle);
 
-                Cell c5 = row.createCell(5); c5.setCellValue(art.getBonCommandesSummary() != null ? art.getBonCommandesSummary() : "-"); c5.setCellStyle(borderStyle);
+                Cell c4 = row.createCell(4); c4.setCellValue(art.getBonCommandesSummary() != null ? art.getBonCommandesSummary() : "-"); c4.setCellStyle(borderStyle);
 
                 double price = art.getPrixUnit() != null ? art.getPrixUnit() : 0.0;
-                Cell c6 = row.createCell(6); c6.setCellValue(price); c6.setCellStyle(currencyStyle);
+                Cell c5 = row.createCell(5); c5.setCellValue(price); c5.setCellStyle(currencyStyle);
 
                 int qty = art.getQuantityInStock() != null ? art.getQuantityInStock() : 0;
-                Cell c7 = row.createCell(7); c7.setCellValue(qty); c7.setCellStyle(borderStyle);
+                Cell c6 = row.createCell(6); c6.setCellValue(qty); c6.setCellStyle(borderStyle);
 
                 int damaged = art.getQuantityDamaged() != null ? art.getQuantityDamaged() : 0;
-                Cell c8 = row.createCell(8); c8.setCellValue(damaged); c8.setCellStyle(borderStyle);
+                Cell c7 = row.createCell(7); c7.setCellValue(damaged); c7.setCellStyle(borderStyle);
 
                 double val = price * qty;
-                Cell c9 = row.createCell(9); c9.setCellValue(val); c9.setCellStyle(currencyStyle);
+                Cell c8 = row.createCell(8); c8.setCellValue(val); c8.setCellStyle(currencyStyle);
 
                 totalValue += val;
                 totalStockQty += qty;
@@ -134,19 +133,19 @@ public class ReportExportService {
             Cell labelCell = totalRow.createCell(0);
             labelCell.setCellValue("TOTAL");
             labelCell.setCellStyle(boldBorder);
-            for (int i = 1; i <= 6; i++) {
+            for (int i = 1; i <= 5; i++) {
                 totalRow.createCell(i).setCellStyle(boldBorder); // empty styled cells
             }
 
-            Cell sumQtyCell = totalRow.createCell(7);
+            Cell sumQtyCell = totalRow.createCell(6);
             sumQtyCell.setCellValue(totalStockQty);
             sumQtyCell.setCellStyle(boldBorder);
 
-            Cell sumDamagedCell = totalRow.createCell(8);
+            Cell sumDamagedCell = totalRow.createCell(7);
             sumDamagedCell.setCellValue(totalDamagedQty);
             sumDamagedCell.setCellStyle(boldBorder);
 
-            Cell sumValCell = totalRow.createCell(9);
+            Cell sumValCell = totalRow.createCell(8);
             sumValCell.setCellValue(totalValue);
             sumValCell.setCellStyle(boldCurrency);
 
@@ -185,7 +184,7 @@ public class ReportExportService {
             metaRow.createCell(0).setCellValue("Généré le : " + LocalDateTime.now().format(fileDateFormatter));
 
             // Headers
-            String[] headers = {"Date", "Type", "Article Réf", "Article Designation", "Quantité", "De", "Vers", "Référence Doc", "Date Entrée Système", "Quantité Commandée", "Stock Restant"};
+            String[] headers = {"Date", "Type", "Article Designation", "Quantité", "De", "Vers", "Référence Doc", "Date Entrée Système", "Quantité Commandée", "Stock Restant"};
             Row headerRow = sheet.createRow(3);
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
@@ -200,16 +199,15 @@ public class ReportExportService {
                 Row row = sheet.createRow(rowIdx++);
                 Cell c0 = row.createCell(0); c0.setCellValue(m.getDate() != null ? m.getDate().format(dtf) : "-"); c0.setCellStyle(borderStyle);
                 Cell c1 = row.createCell(1); c1.setCellValue(m.getType() != null ? m.getType().name() : "-"); c1.setCellStyle(borderStyle);
-                Cell c2 = row.createCell(2); c2.setCellValue(m.getArticle() != null ? m.getArticle().getReference() : "-"); c2.setCellStyle(borderStyle);
-                Cell c3 = row.createCell(3); c3.setCellValue(m.getArticle() != null ? m.getArticle().getName() : "-"); c3.setCellStyle(borderStyle);
-                Cell c4 = row.createCell(4); c4.setCellValue(m.getQuantity()); c4.setCellStyle(borderStyle);
-                Cell c5 = row.createCell(5); c5.setCellValue(m.getFromEntity() != null ? m.getFromEntity() : "-"); c5.setCellStyle(borderStyle);
-                Cell c6 = row.createCell(6); c6.setCellValue(m.getToEntity() != null ? m.getToEntity() : "-"); c6.setCellStyle(borderStyle);
-                Cell c7 = row.createCell(7); c7.setCellValue(m.getReference() != null ? m.getReference() : "-"); c7.setCellStyle(borderStyle);
+                Cell c2 = row.createCell(2); c2.setCellValue(m.getArticle() != null ? m.getArticle().getName() : "-"); c2.setCellStyle(borderStyle);
+                Cell c3 = row.createCell(3); c3.setCellValue(m.getQuantity()); c3.setCellStyle(borderStyle);
+                Cell c4 = row.createCell(4); c4.setCellValue(m.getFromEntity() != null ? m.getFromEntity() : "-"); c4.setCellStyle(borderStyle);
+                Cell c5 = row.createCell(5); c5.setCellValue(m.getToEntity() != null ? m.getToEntity() : "-"); c5.setCellStyle(borderStyle);
+                Cell c6 = row.createCell(6); c6.setCellValue(m.getReference() != null ? m.getReference() : "-"); c6.setCellStyle(borderStyle);
                 
-                Cell c8 = row.createCell(8); c8.setCellValue(m.getArticle() != null && m.getArticle().getBonCommandeDate() != null && !m.getArticle().getBonCommandeDate().isEmpty() ? m.getArticle().getBonCommandeDate() : "-"); c8.setCellStyle(borderStyle);
-                Cell c9 = row.createCell(9); c9.setCellValue(m.getArticle() != null && m.getArticle().getQuantiteCommandee() != null ? m.getArticle().getQuantiteCommandee() : 0); c9.setCellStyle(borderStyle);
-                Cell c10 = row.createCell(10); c10.setCellValue(m.getArticle() != null && m.getArticle().getQuantityInStock() != null ? m.getArticle().getQuantityInStock() : 0); c10.setCellStyle(borderStyle);
+                Cell c7 = row.createCell(7); c7.setCellValue(m.getArticle() != null && m.getArticle().getBonCommandeDate() != null && !m.getArticle().getBonCommandeDate().isEmpty() ? m.getArticle().getBonCommandeDate() : "-"); c7.setCellStyle(borderStyle);
+                Cell c8 = row.createCell(8); c8.setCellValue(m.getArticle() != null && m.getArticle().getQuantiteCommandee() != null ? m.getArticle().getQuantiteCommandee() : 0); c8.setCellStyle(borderStyle);
+                Cell c9 = row.createCell(9); c9.setCellValue(m.getArticle() != null && m.getArticle().getQuantityInStock() != null ? m.getArticle().getQuantityInStock() : 0); c9.setCellStyle(borderStyle);
             }
 
             // Auto-size columns
@@ -257,7 +255,7 @@ public class ReportExportService {
     public void exportArticlesToCSV(File file, List<ArticleDto> articles) throws Exception {
         try (Writer writer = new FileWriter(file);
              CSVWriter csvWriter = new CSVWriter(writer)) {
-            String[] headers = {"Reference", "Designation", "Caracteristique", "Categorie", "Format", "Bons de Commande", "Prix Unit", "Quantite Stock", "Quantite Endommage", "Valeur Totale"};
+            String[] headers = {"Designation", "Caracteristique", "Categorie", "Format", "Bons de Commande", "Prix Unit", "Quantite Stock", "Quantite Endommage", "Valeur Totale"};
             csvWriter.writeNext(headers);
 
             for (ArticleDto art : articles) {
@@ -267,7 +265,6 @@ public class ReportExportService {
                 String formats = art.getCategories() != null ? art.getCategories().stream().filter(c -> "FORMAT".equals(c.getType())).map(CategoryDto::getName).collect(Collectors.joining(", ")) : "-";
                 
                 String[] row = {
-                        art.getReference(),
                         art.getName(),
                         art.getCaracteristique() != null ? art.getCaracteristique() : "-",
                         cats.isEmpty() ? "-" : cats,
@@ -286,7 +283,7 @@ public class ReportExportService {
     public void exportMovementsToCSV(File file, List<MovementDto> movements) throws Exception {
         try (Writer writer = new FileWriter(file);
              CSVWriter csvWriter = new CSVWriter(writer)) {
-            String[] headers = {"Date", "Type", "Article Reference", "Article Designation", "Quantite", "De", "Vers", "Reference Document", "Date Entree Systeme", "Quantite Commandee", "Stock Restant"};
+            String[] headers = {"Date", "Type", "Article Designation", "Quantite", "De", "Vers", "Reference Document", "Date Entree Systeme", "Quantite Commandee", "Stock Restant"};
             csvWriter.writeNext(headers);
 
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -294,7 +291,6 @@ public class ReportExportService {
                 String[] row = {
                         m.getDate() != null ? m.getDate().format(dtf) : "-",
                         m.getType() != null ? m.getType().name() : "-",
-                        m.getArticle() != null ? m.getArticle().getReference() : "-",
                         m.getArticle() != null ? m.getArticle().getName() : "-",
                         String.valueOf(m.getQuantity()),
                         m.getFromEntity() != null ? m.getFromEntity() : "-",
@@ -322,17 +318,17 @@ public class ReportExportService {
         addPDFHeader(document, reportTitle);
 
         // 2. Add Table
-        PdfPTable table = new PdfPTable(10);
+        PdfPTable table = new PdfPTable(9);
         table.setWidthPercentage(100);
         table.setSpacingBefore(15);
-        table.setWidths(new float[]{0.9f, 1.8f, 1.6f, 1.3f, 1.3f, 2.0f, 0.8f, 0.8f, 0.8f, 1.0f});
+        table.setWidths(new float[]{1.8f, 1.6f, 1.3f, 1.3f, 2.0f, 0.8f, 0.8f, 0.8f, 1.0f});
 
         Font headerFont = new Font(Font.HELVETICA, 10, Font.BOLD, java.awt.Color.WHITE);
         Font cellFont = new Font(Font.HELVETICA, 9, Font.NORMAL);
         Font boldCellFont = new Font(Font.HELVETICA, 9, Font.BOLD);
 
         // Header cells
-        String[] headers = {"Référence", "Désignation", "Caractéristiques", "Catégorie", "Format", "Bons de Commande", "P. Unit.", "Qté Stock", "Qté Endom.", "Val. Totale"};
+        String[] headers = {"Désignation", "Caractéristiques", "Catégorie", "Format", "Bons de Commande", "P. Unit.", "Qté Stock", "Qté Endom.", "Val. Totale"};
         for (String h : headers) {
             PdfPCell cell = new PdfPCell(new Phrase(h, headerFont));
             cell.setBackgroundColor(new java.awt.Color(44, 62, 80)); // Deep Blue
@@ -359,7 +355,6 @@ public class ReportExportService {
             totalStockQty += qty;
             totalDamagedQty += damaged;
 
-            table.addCell(createPDFCell(art.getReference(), cellFont, bg, Element.ALIGN_LEFT));
             table.addCell(createPDFCell(art.getName(), cellFont, bg, Element.ALIGN_LEFT));
             table.addCell(createPDFCell(art.getCaracteristique() != null ? art.getCaracteristique() : "-", cellFont, bg, Element.ALIGN_LEFT));
 
@@ -379,7 +374,7 @@ public class ReportExportService {
         // Add Totals row
         java.awt.Color totalBg = new java.awt.Color(230, 233, 237);
         PdfPCell totalLabel = new PdfPCell(new Phrase("TOTAL", boldCellFont));
-        totalLabel.setColspan(6);
+        totalLabel.setColspan(5);
         totalLabel.setBackgroundColor(totalBg);
         totalLabel.setPadding(6);
         table.addCell(totalLabel);
@@ -406,15 +401,15 @@ public class ReportExportService {
         addPDFHeader(document, "Rapport Historique des Mouvements");
 
         // 2. Add Table
-        PdfPTable table = new PdfPTable(11);
+        PdfPTable table = new PdfPTable(10);
         table.setWidthPercentage(100);
         table.setSpacingBefore(15);
-        table.setWidths(new float[]{1.1f, 0.7f, 1.0f, 1.6f, 0.6f, 1.0f, 1.0f, 0.9f, 1.0f, 0.7f, 0.7f});
+        table.setWidths(new float[]{1.1f, 0.7f, 1.6f, 0.6f, 1.0f, 1.0f, 0.9f, 1.0f, 0.7f, 0.7f});
 
         Font headerFont = new Font(Font.HELVETICA, 10, Font.BOLD, java.awt.Color.WHITE);
         Font cellFont = new Font(Font.HELVETICA, 9, Font.NORMAL);
 
-        String[] headers = {"Date", "Type", "Réf Article", "Désignation", "Qté", "Origine", "Destination", "Doc Réf", "Date Entrée", "Qté Comm.", "Stock Rest."};
+        String[] headers = {"Date", "Type", "Désignation", "Qté", "Origine", "Destination", "Doc Réf", "Date Entrée", "Qté Comm.", "Stock Rest."};
         for (String h : headers) {
             PdfPCell cell = new PdfPCell(new Phrase(h, headerFont));
             cell.setBackgroundColor(new java.awt.Color(44, 62, 80));
@@ -431,7 +426,6 @@ public class ReportExportService {
 
             table.addCell(createPDFCell(m.getDate() != null ? m.getDate().format(dtf) : "-", cellFont, bg, Element.ALIGN_CENTER));
             table.addCell(createPDFCell(m.getType() != null ? m.getType().name() : "-", cellFont, bg, Element.ALIGN_CENTER));
-            table.addCell(createPDFCell(m.getArticle() != null ? m.getArticle().getReference() : "-", cellFont, bg, Element.ALIGN_LEFT));
             table.addCell(createPDFCell(m.getArticle() != null ? m.getArticle().getName() : "-", cellFont, bg, Element.ALIGN_LEFT));
             table.addCell(createPDFCell(String.valueOf(m.getQuantity()), cellFont, bg, Element.ALIGN_CENTER));
             table.addCell(createPDFCell(m.getFromEntity() != null ? m.getFromEntity() : "-", cellFont, bg, Element.ALIGN_LEFT));

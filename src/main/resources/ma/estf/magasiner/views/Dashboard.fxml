@@ -23,7 +23,6 @@
     <Label text="Inventory Details" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 10px 0 0 0;"/>
     <TableView fx:id="inventoryTable" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colRef" text="Référence" prefWidth="120"/>
             <TableColumn fx:id="colName" text="Designation" prefWidth="250"/>
             <TableColumn fx:id="colType" text="Type" prefWidth="100"/>
             <TableColumn fx:id="colAvailable" text="Disponibles" prefWidth="100"/>

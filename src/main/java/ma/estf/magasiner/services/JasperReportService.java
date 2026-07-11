@@ -159,7 +159,7 @@ public class JasperReportService {
                     }
                 }
             }
-            invoiceItems.add(new InvoiceItem(article.getReference(), article.getName(), totalQty, invText, article.getCaracteristique(), article.getPrixUnit()));
+            invoiceItems.add(new InvoiceItem("", article.getName(), totalQty, invText, article.getCaracteristique(), article.getPrixUnit()));
         }
 
         JRDataSource dataSource;
@@ -253,7 +253,7 @@ public class JasperReportService {
                     invText = "de " + invs.get(0) + " à " + invs.get(invs.size() - 1);
                 }
             }
-            invoiceItems.add(new InvoiceItem(article.getReference(), article.getName(), totalQty, invText, article.getCaracteristique(), article.getPrixUnit()));
+            invoiceItems.add(new InvoiceItem("", article.getName(), totalQty, invText, article.getCaracteristique(), article.getPrixUnit()));
         }
 
         // Combine all items into one record for a single-page material fiche
@@ -338,7 +338,7 @@ public class JasperReportService {
                     invText = "de " + invs.get(0) + " à " + invs.get(invs.size() - 1);
                 }
             }
-            invoiceItems.add(new InvoiceItem(article.getReference(), article.getName(), totalQty, invText, article.getCaracteristique(), article.getPrixUnit()));
+            invoiceItems.add(new InvoiceItem("", article.getName(), totalQty, invText, article.getCaracteristique(), article.getPrixUnit()));
         }
 
         // Combine all items into one record for a single-page material fiche with clean HTML formatting

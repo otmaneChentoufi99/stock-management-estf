@@ -10,7 +10,6 @@
     
     <TableView fx:id="lignesTable" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colRef" text="Référence" prefWidth="120"/>
             <TableColumn fx:id="colName" text="Article" prefWidth="250"/>
             <TableColumn fx:id="colQty" text="Quantité Commandée" prefWidth="150"/>
         </columns>
