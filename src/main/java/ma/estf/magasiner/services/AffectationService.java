@@ -45,6 +45,8 @@ public class AffectationService {
                     .items(new ArrayList<>())
                     .build();
 
+            session.persist(affectation);
+
             for (AffectationItemDto itemDto : affectationDto.getItems()) {
                 Article article = session.get(Article.class, itemDto.getArticle().getId());
                 if (article == null || article.getQuantityInStock() < itemDto.getQuantity()) {
