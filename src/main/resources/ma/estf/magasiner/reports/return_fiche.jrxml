@@ -33,6 +33,7 @@
     <parameter name="department" class="java.lang.String"/>
     <parameter name="beneficiary" class="java.lang.String"/>
     <parameter name="fournisseur" class="java.lang.String"/>
+    <parameter name="bc" class="java.lang.String"/>
 
     <!-- ================= FIELDS ================= -->
     <field name="designation" class="java.lang.String"/>
@@ -308,11 +309,27 @@
                 <text><![CDATA[RÉCEPTIONNÉ PAR LE MAGASINIER]]></text>
             </staticText>
 
-            <!-- 7. BOTTOM STAMP/GRID LINE SECTION (to keep identical visual look) -->
+            <!-- 7. BC NUMBER SECTION -->
             <!-- Horizontal line at y=650 drawn above -->
             <line>
                 <reportElement x="310" y="650" width="1" height="70"/>
             </line>
+
+            <!-- Left: BC:N° -->
+            <staticText>
+                <reportElement x="40" y="660" width="60" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[BC:N°:]]></text>
+            </staticText>
+            <textField textAdjust="ScaleFont">
+                <reportElement x="90" y="660" width="200" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{bc} != null ? $P{bc} : "-"]]></textFieldExpression>
+            </textField>
 
             <!-- ================= OBSERVATIONS ================= -->
             <staticText>

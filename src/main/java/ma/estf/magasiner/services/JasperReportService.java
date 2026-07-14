@@ -323,6 +323,13 @@ public class JasperReportService {
                 .collect(Collectors.joining(", "));
         parameters.put("fournisseur", allFournisseurs.isEmpty() ? "-" : allFournisseurs);
 
+        String allBcNumeros = returnedItems.stream()
+                .map(AffectationItem::getBcNumero)
+                .filter(b -> b != null && !b.trim().isEmpty() && !"-".equals(b.trim()))
+                .distinct()
+                .collect(Collectors.joining(", "));
+        parameters.put("bc", allBcNumeros.isEmpty() ? "-" : allBcNumeros);
+
         List<InvoiceItem> invoiceItems = new ArrayList<>();
         Map<Article, List<AffectationItem>> grouped = returnedItems.stream()
                 .collect(Collectors.groupingBy(AffectationItem::getArticle, LinkedHashMap::new, Collectors.toList()));

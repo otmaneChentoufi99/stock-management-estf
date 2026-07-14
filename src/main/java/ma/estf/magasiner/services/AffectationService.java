@@ -311,6 +311,8 @@ public class AffectationService {
                         .quantity(qty)
                         .inventoryNumber(sourceItem.getInventoryNumber())
                         .condition(sourceItem.getCondition())
+                        .bcNumero(sourceItem.getBcNumero())
+                        .fournisseur(sourceItem.getFournisseur())
                         .sourceItemId(sourceItem.getId())
                         .build();
                     session.persist(targetItem);
