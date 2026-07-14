@@ -21,7 +21,6 @@ public class MovementHistoryController {
     @FXML private TableColumn<MovementDto, Integer> colQty;
     @FXML private TableColumn<MovementDto, String> colFrom;
     @FXML private TableColumn<MovementDto, String> colTo;
-    @FXML private TableColumn<MovementDto, String> colRef;
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> typeFilter;
@@ -41,7 +40,6 @@ public class MovementHistoryController {
         colQty.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         colFrom.setCellValueFactory(new PropertyValueFactory<>("fromEntity"));
         colTo.setCellValueFactory(new PropertyValueFactory<>("toEntity"));
-        colRef.setCellValueFactory(new PropertyValueFactory<>("reference"));
 
         typeFilter.setItems(FXCollections.observableArrayList("Tous", "IN", "OUT", "TRANSFER", "RETURN", "LOSS", "DAMAGE", "MAINTENANCE"));
         typeFilter.setValue("Tous");
