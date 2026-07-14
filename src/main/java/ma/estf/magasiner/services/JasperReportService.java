@@ -111,7 +111,7 @@ public class JasperReportService {
         parameters.put(
                 "LOGO_PATH",
                 getClass()
-                        .getResource("/ma/estf/magasiner/images/estf-icon.png")
+                        .getResource("/ma/estf/magasiner/images/estf-icon.jpg")
                         .toString()
         );
         parameters.put("affectationId", affectation.getId());
@@ -215,7 +215,7 @@ public class JasperReportService {
         parameters.put(
                 "LOGO_PATH",
                 getClass()
-                        .getResource("/ma/estf/magasiner/images/estf-icon.png")
+                        .getResource("/ma/estf/magasiner/images/estf-icon.jpg")
                         .toString()
         );
         parameters.put("affectationId", target.getId());
@@ -230,6 +230,13 @@ public class JasperReportService {
                 .distinct()
                 .collect(Collectors.joining(", "));
         parameters.put("fournisseur", allFournisseurs.isEmpty() ? "-" : allFournisseurs);
+
+        String allBcNumeros = target.getItems().stream()
+                .map(AffectationItem::getBcNumero)
+                .filter(b -> b != null && !b.trim().isEmpty() && !"-".equals(b.trim()))
+                .distinct()
+                .collect(Collectors.joining(", "));
+        parameters.put("bc", allBcNumeros.isEmpty() ? "-" : allBcNumeros);
 
         List<InvoiceItem> invoiceItems = new ArrayList<>();
         Map<Article, List<AffectationItem>> grouped = target.getItems().stream()
@@ -299,7 +306,7 @@ public class JasperReportService {
         parameters.put(
                 "LOGO_PATH",
                 getClass()
-                        .getResource("/ma/estf/magasiner/images/estf-icon.png")
+                        .getResource("/ma/estf/magasiner/images/estf-icon.jpg")
                         .toString()
         );
         parameters.put("affectationId", affectation.getId());

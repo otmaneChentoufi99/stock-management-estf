@@ -465,7 +465,7 @@ public class ReportExportService {
         headerTable.addCell(leftCell);
 
         // Right Header: Logo image
-        java.net.URL logoUrl = getClass().getResource("/ma/estf/magasiner/images/estf-icon.png");
+        java.net.URL logoUrl = getClass().getResource("/ma/estf/magasiner/images/estf-icon.jpg");
         PdfPCell rightCell;
         if (logoUrl != null) {
             Image img = Image.getInstance(logoUrl);

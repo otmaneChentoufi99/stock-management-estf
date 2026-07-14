@@ -202,7 +202,7 @@ public class AffectationService {
                 return new JasperReportService().generateInvoice(target);
             }
         } catch (Exception e) {
-            if (tx != null) tx.rollback();
+            if (tx != null && tx.isActive()) tx.rollback();
             throw e;
         }
     }
@@ -275,7 +275,7 @@ public class AffectationService {
             tx.commit();
             return new JasperReportService().generateReturnReport(source, returnedEntities);
         } catch (Exception e) {
-            if (tx != null) tx.rollback();
+            if (tx != null && tx.isActive()) tx.rollback();
             throw e;
         }
     }
@@ -326,7 +326,7 @@ public class AffectationService {
 
             tx.commit();
         } catch (Exception e) {
-            if (tx != null) tx.rollback();
+            if (tx != null && tx.isActive()) tx.rollback();
             throw e;
         }
     }
@@ -357,7 +357,7 @@ public class AffectationService {
 
             tx.commit();
         } catch (Exception e) {
-            if (tx != null) tx.rollback();
+            if (tx != null && tx.isActive()) tx.rollback();
             throw e;
         }
     }

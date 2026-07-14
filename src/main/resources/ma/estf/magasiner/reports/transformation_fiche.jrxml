@@ -34,6 +34,7 @@
     <parameter name="beneficiary" class="java.lang.String"/>
     <parameter name="sourceBeneficiary" class="java.lang.String"/>
     <parameter name="fournisseur" class="java.lang.String"/>
+    <parameter name="bc" class="java.lang.String"/>
 
     <!-- ================= FIELDS ================= -->
     <field name="designation" class="java.lang.String"/>
@@ -205,127 +206,173 @@
                 <textFieldExpression><![CDATA[$F{caracteristique}]]></textFieldExpression>
             </textField>
             
-            <!-- 5. DATE & FOURNISSEUR SECTION -->
-            <line>
-                <reportElement x="30" y="555" width="535" height="1"/>
-            </line>
-            <line>
-                <reportElement x="297" y="520" width="1" height="35"/>
-            </line>
-
-            <staticText>
-                <reportElement x="40" y="520" width="100" height="35"/>
-                <textElement verticalAlignment="Middle"/>
-                <text><![CDATA[DATE D'ENTREE: ]]></text>
-            </staticText>
-
-            <textField>
-                <reportElement x="140" y="520" width="150" height="35"/>
-                <textElement verticalAlignment="Middle">
-                    <font isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{date}]]></textFieldExpression>
-            </textField>
-
-            <staticText>
-                <reportElement x="307" y="520" width="80" height="35"/>
-                <textElement verticalAlignment="Middle"/>
-                <text><![CDATA[FOURNISSEUR: ]]></text>
-            </staticText>
-
-            <textField textAdjust="ScaleFont">
-                <reportElement x="387" y="520" width="170" height="35"/>
-                <textElement verticalAlignment="Middle">
-                    <font isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{fournisseur}]]></textFieldExpression>
-            </textField>
-
-            <!-- 6. AFFECTATION SECTION -->
+            <!-- 5. FOURNISSEUR / DATE / AFFECTATION SECTION (full-width, stacked) -->
+            <!-- top border already at y=520 from main box -->
             <line>
                 <reportElement x="30" y="590" width="535" height="1"/>
             </line>
 
+            <!-- Nom de fournisseur -->
             <staticText>
-                <reportElement x="40" y="555" width="150" height="35"/>
-                <textElement verticalAlignment="Middle"/>
-                <text><![CDATA[NOUVELLE AFFECTATION: ]]></text>
-            </staticText>
-
-            <textField>
-                <reportElement x="190" y="555" width="365" height="35"/>
+                <reportElement x="40" y="525" width="130" height="18"/>
                 <textElement verticalAlignment="Middle">
-                    <font isBold="true"/>
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[Nom de fournisseur: ]]></text>
+            </staticText>
+            <textField textAdjust="ScaleFont">
+                <reportElement x="172" y="525" width="385" height="18"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{fournisseur}]]></textFieldExpression>
+            </textField>
+
+            <!-- Date d'entree -->
+            <staticText>
+                <reportElement x="40" y="545" width="130" height="18"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[date d'entree: ]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="172" y="545" width="385" height="18"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{date}]]></textFieldExpression>
+            </textField>
+
+            <!-- Nouvelle affectation -->
+            <staticText>
+                <reportElement x="40" y="565" width="130" height="18"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[nouvelle affectation: ]]></text>
+            </staticText>
+            <textField textAdjust="ScaleFont">
+                <reportElement x="172" y="565" width="385" height="18"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
                 </textElement>
                 <textFieldExpression><![CDATA[$P{department}]]></textFieldExpression>
             </textField>
 
-            <!-- 7. SIGNATURES SECTION -->
+            <!-- 6. SIGNATURES / EMARGEMENT SECTION -->
+            <!-- Horizontal line at y=590 already drawn above -->
             <line>
-                <reportElement x="208" y="590" width="1" height="130"/>
+                <reportElement x="30" y="650" width="535" height="1"/>
             </line>
+            <!-- Vertical divider splitting left (signatures) and right (emargements) -->
             <line>
-                <reportElement x="386" y="590" width="1" height="130"/>
+                <reportElement x="380" y="590" width="1" height="60"/>
             </line>
 
-            <!-- Column 1: CÉDÉ PAR -->
+            <!-- Row 1: Cédé par + Emargement -->
+            <!-- Left: cede par + Le -->
             <staticText>
-                <reportElement x="35" y="600" width="170" height="20"/>
-                <textElement textAlignment="Center">
-                    <font isBold="true" isUnderline="true"/>
+                <reportElement x="40" y="595" width="70" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9"/>
                 </textElement>
-                <text><![CDATA[CÉDÉ PAR]]></text>
+                <text><![CDATA[CÉDÉ PAR:]]></text>
             </staticText>
-
-            <textField textAdjust="StretchHeight">
-                <reportElement x="35" y="630" width="170" height="20"/>
-                <textElement textAlignment="Center">
-                    <font size="10"/>
+            <textField textAdjust="ScaleFont">
+                <reportElement x="160" y="595" width="160" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
                 </textElement>
-                <textFieldExpression><![CDATA["M : " + $P{sourceBeneficiary}]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$P{sourceBeneficiary}]]></textFieldExpression>
             </textField>
 
-            <textField>
-                <reportElement x="35" y="655" width="170" height="20"/>
-                <textElement textAlignment="Center">
-                    <font size="10"/>
-                </textElement>
-                <textFieldExpression><![CDATA["LE : " + $P{date}]]></textFieldExpression>
-            </textField>
-
-            <!-- Column 2: PRIS EN CHARGE PAR -->
             <staticText>
-                <reportElement x="213" y="600" width="170" height="20"/>
-                <textElement textAlignment="Center">
-                    <font isBold="true" isUnderline="true"/>
+                <reportElement x="275" y="595" width="20" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9"/>
                 </textElement>
-                <text><![CDATA[PRIS EN CHARGE PAR]]></text>
+                <text><![CDATA[Le:]]></text>
             </staticText>
-
-            <textField textAdjust="StretchHeight">
-                <reportElement x="213" y="630" width="170" height="20"/>
-                <textElement textAlignment="Center">
-                    <font size="10"/>
-                </textElement>
-                <textFieldExpression><![CDATA["M : " + $P{beneficiary}]]></textFieldExpression>
-            </textField>
-
             <textField>
-                <reportElement x="213" y="655" width="170" height="20"/>
-                <textElement textAlignment="Center">
-                    <font size="10"/>
+                <reportElement x="295" y="595" width="80" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
                 </textElement>
-                <textFieldExpression><![CDATA["LE : " + $P{date}]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$P{date}]]></textFieldExpression>
             </textField>
 
-            <!-- Column 3: EMARGEMENT -->
+            <!-- Right: EMARGEMENT -->
             <staticText>
-                <reportElement x="391" y="600" width="170" height="20"/>
-                <textElement textAlignment="Center">
-                    <font isBold="true" isUnderline="true"/>
+                <reportElement x="385" y="595" width="175" height="14"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
                 </textElement>
                 <text><![CDATA[EMARGEMENT]]></text>
             </staticText>
+
+            <!-- Row 2: Pris en charge par + Emargement -->
+            <!-- Left: PRIS EN CHARGE PAR + Le -->
+            <staticText>
+                <reportElement x="40" y="625" width="120" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[PRIS EN CHARGE PAR:]]></text>
+            </staticText>
+            <textField textAdjust="ScaleFont">
+                <reportElement x="160" y="625" width="110" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{beneficiary}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="275" y="625" width="20" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[Le:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="295" y="625" width="80" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{date}]]></textFieldExpression>
+            </textField>
+
+            <!-- Right: EMARGEMENT -->
+            <staticText>
+                <reportElement x="385" y="625" width="175" height="14"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[EMARGEMENT]]></text>
+            </staticText>
+
+            <!-- 7. BC NUMBER SECTION -->
+            <!-- Horizontal line at y=650 drawn above -->
+            <line>
+                <reportElement x="310" y="650" width="1" height="70"/>
+            </line>
+
+            <!-- Left: BC:N° -->
+            <staticText>
+                <reportElement x="40" y="660" width="60" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9"/>
+                </textElement>
+                <text><![CDATA[BC:N°:]]></text>
+            </staticText>
+            <textField textAdjust="ScaleFont">
+                <reportElement x="90" y="660" width="200" height="14"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{bc} != null ? $P{bc} : "-"]]></textFieldExpression>
+            </textField>
 
             <!-- ================= OBSERVATIONS ================= -->
             <staticText>
