@@ -9,7 +9,6 @@ import java.util.Set;
 @Builder
 public class ArticleDto {
     private Long id;
-    private String reference;
     private String name;
     private String caracteristique;
     private Double prixUnit;

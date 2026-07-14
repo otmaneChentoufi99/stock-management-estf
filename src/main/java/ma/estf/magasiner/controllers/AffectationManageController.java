@@ -24,7 +24,6 @@ public class AffectationManageController {
     @FXML private Label dateLabel;
 
     @FXML private TableView<AffectationItemDto> itemsTable;
-    @FXML private TableColumn<AffectationItemDto, String> colRef;
     @FXML private TableColumn<AffectationItemDto, String> colName;
     @FXML private TableColumn<AffectationItemDto, Integer> colQuantity;
     @FXML private TableColumn<AffectationItemDto, String> colInventory;
@@ -51,7 +50,6 @@ public class AffectationManageController {
 
     @FXML
     public void initialize() {
-        colRef.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArticle().getReference()));
         colName.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArticle().getName()));
         colQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         colInventory.setCellValueFactory(new PropertyValueFactory<>("inventoryNumber"));

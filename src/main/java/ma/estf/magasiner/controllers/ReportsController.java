@@ -368,10 +368,6 @@ public class ReportsController {
     }
 
     private void setupArticleTableColumns() {
-        TableColumn<Object, String> colRef = new TableColumn<>("Référence");
-        colRef.setCellValueFactory(cellData -> new SimpleStringProperty(((ArticleDto) cellData.getValue()).getReference()));
-        colRef.setPrefWidth(100);
-
         TableColumn<Object, String> colName = new TableColumn<>("Designation");
         colName.setCellValueFactory(cellData -> new SimpleStringProperty(((ArticleDto) cellData.getValue()).getName()));
         colName.setPrefWidth(220);
@@ -434,7 +430,7 @@ public class ReportsController {
         });
         colBcs.setPrefWidth(250);
 
-        previewTable.getColumns().addAll(Arrays.asList(colRef, colName, colCats, colFormats, colBcs, colPrice, colQty, colDamaged, colVal));
+        previewTable.getColumns().addAll(Arrays.asList(colName, colCats, colFormats, colBcs, colPrice, colQty, colDamaged, colVal));
     }
 
     private void setupMovementTableColumns() {

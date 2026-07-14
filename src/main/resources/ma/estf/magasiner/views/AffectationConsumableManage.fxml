@@ -26,7 +26,6 @@
         <Label text="Articles de cette affectation" style="-fx-font-weight: bold; -fx-text-fill: #34495e;"/>
         <TableView fx:id="itemsTable" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="colRef" text="Référence" prefWidth="120"/>
                 <TableColumn fx:id="colName" text="Désignation" prefWidth="250"/>
                 <TableColumn fx:id="colQuantity" text="Qté" prefWidth="80"/>
                 <TableColumn fx:id="colInventory" text="N° Inv" prefWidth="150"/>
